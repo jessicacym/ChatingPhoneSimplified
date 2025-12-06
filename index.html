@@ -1,5 +1,4 @@
-
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,11 +6,9 @@
     <title>Chat with Ling</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* 内置基础样式，确保没有 styles.css 也能运行 */
         :root {
             --primary-color: #007AFF;
             --bg-color: #f2f2f7;
-            --chat-bg: #fff;
             --bubble-sent: #007AFF;
             --bubble-received: #e9e9eb;
             --text-sent: #fff;
@@ -81,7 +78,7 @@
         /* 聊天区域 */
         #chat-messages {
             flex: 1;
-            padding: 70px 15px 80px 15px; /* 留出顶部和底部空间 */
+            padding: 70px 15px 80px 15px;
             overflow-y: auto;
             background-color: var(--bg-color);
             display: flex;
@@ -175,27 +172,10 @@
             opacity: 0.8;
         }
 
-        /* 心理描写和动作描写样式 */
         .narrative-action {
             font-style: italic;
             color: #666;
             font-size: 0.9em;
-        }
-        
-        .loading-dots {
-            display: inline-block;
-            width: 20px;
-            text-align: center;
-        }
-        .loading-dots:after {
-            content: '.';
-            animation: dots 1.5s steps(5, end) infinite;
-        }
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60% { content: '...'; }
-            80%, 100% { content: ''; }
         }
     </style>
 </head>
@@ -208,11 +188,9 @@
             <div class="header-name">Ling Zhaoye</div>
             <div class="header-status" id="chat-status">Online</div>
         </div>
-        <div id="reset-trigger" style="width: 30px; height: 30px;"></div>
     </div>
 
-    <div id="chat-messages">
-        </div>
+    <div id="chat-messages"></div>
 
     <div class="input-area">
         <textarea id="message-input" rows="1" placeholder="Message..."></textarea>
@@ -220,7 +198,169 @@
     </div>
 </div>
 
-<script src="script.js"></script>
+<script>
+    // ==========================================================
+    // 配置区域
+    // ==========================================================
+    
+    // 你的 API KEY
+    const GEMINI_API_KEY = "AIzaSyDIoYYaKXHJ1P9uOnmpcprrx-CgLgqbidM"; 
+
+    // 人设配置
+    const SYSTEM_PROMPT = `
+    [Character Identity]
+    Name: Ling Zhaoye
+    Age: 20
+    Identity: Sole heir to the Ling Group.
+    Nicknames: "Young Master Ling", "Little Ancestor".
+
+    [Personality: Tsundere & Possessive]
+    1. Tsundere: Struggles to express care directly. Instead of "I was worried," he says "You're so clumsy without me."
+    2. Short-tempered: Blushes and shouts denials if you guess his true feelings.
+    3. Possessive: Hates when others get close to you.
+    4. Clingy Puppy (Hidden): Loves hugs and acting spoiled in private.
+
+    [Interaction Rules]
+    1. YOU ARE NOT AN AI. You are Ling Zhaoye.
+    2. REPLY IN ENGLISH ONLY.
+    3. Use *asterisks* for actions.
+    4. Be arrogant but affectionate.
+    `;
+
+    const STORAGE_KEY = 'koko_chat_history_v1';
+
+    function saveHistory(messages) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    }
+
+    function loadHistory() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        return saved ? JSON.parse(saved) : [];
+    }
+
+    let chatHistory = loadHistory();
+
+    const messagesContainer = document.getElementById('chat-messages');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const statusDiv = document.getElementById('chat-status');
+
+    function init() {
+        if (chatHistory.length === 0) {
+            renderMessage("Hmph! Finally remembered to check your phone? I've been waiting for 5 minutes!", 'assistant');
+        } else {
+            chatHistory.forEach(msg => {
+                renderMessage(msg.content, msg.role);
+            });
+        }
+        scrollToBottom();
+    }
+
+    function renderMessage(content, role) {
+        const wrapper = document.createElement('div');
+        wrapper.className = `message-wrapper ${role === 'user' ? 'sent' : 'received'}`;
+
+        let avatarHtml = '';
+        if (role === 'assistant') {
+            avatarHtml = `<img src="https://i.postimg.cc/Bnq7x02k/boy.jpg" class="avatar-small">`;
+        }
+
+        const formattedContent = content.replace(/\n/g, '<br>')
+            .replace(/\*(.*?)\*/g, '<span class="narrative-action">* $1 *</span>');
+
+        const bubbleHtml = `<div class="message-bubble">${formattedContent}</div>`;
+
+        wrapper.innerHTML = role === 'assistant' ? (avatarHtml + bubbleHtml) : bubbleHtml;
+        messagesContainer.appendChild(wrapper);
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    async function handleSend() {
+        const text = messageInput.value.trim();
+        if (!text) return;
+
+        renderMessage(text, 'user');
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+
+        chatHistory.push({ role: 'user', content: text });
+        saveHistory(chatHistory);
+
+        statusDiv.textContent = 'Typing...';
+        
+        try {
+            const responseText = await callGeminiAPI(chatHistory);
+            renderMessage(responseText, 'assistant');
+            chatHistory.push({ role: 'assistant', content: responseText });
+            saveHistory(chatHistory);
+        } catch (error) {
+            console.error(error);
+            renderMessage("[System: Network Error. Check console.]", 'assistant');
+        } finally {
+            statusDiv.textContent = 'Online';
+        }
+    }
+
+    async function callGeminiAPI(history) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        const recentMessages = history.slice(-20);
+        
+        const contents = [
+            { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
+            { role: "model", parts: [{ text: "Understood. I am Ling Zhaoye. I will speak in English." }] }
+        ];
+
+        recentMessages.forEach(msg => {
+            contents.push({
+                role: msg.role === 'user' ? 'user' : 'model',
+                parts: [{ text: msg.content }]
+            });
+        });
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: contents,
+                generationConfig: { temperature: 0.8, maxOutputTokens: 200 }
+            })
+        });
+
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        const data = await response.json();
+        return data.candidates[0].content.parts[0].text;
+    }
+
+    sendBtn.addEventListener('click', handleSend);
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    });
+    
+    // 隐藏重置功能：点击名字5次
+    let clickCount = 0;
+    const headerInfo = document.querySelector('.header-info');
+    if(headerInfo) {
+        headerInfo.addEventListener('click', () => {
+            clickCount++;
+            if (clickCount === 5) {
+                if(confirm("Reset chat history?")) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    location.reload();
+                }
+                clickCount = 0;
+            }
+        });
+    }
+
+    init();
+</script>
 </body>
 </html>
   
