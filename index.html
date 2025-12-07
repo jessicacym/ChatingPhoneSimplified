@@ -7,18 +7,19 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         /* =========================================
-           1. 视觉复刻：薄荷绿悬浮卡片风格
+           UI 设计：Figma 薄荷绿 + 黑色悬浮卡片风格
            ========================================= */
         :root {
-            --bg-gradient-start: #95F3C6; 
-            --bg-gradient-end: #DFFFEF;
+            /* 您的 Figma 配色 */
+            --bg-gradient-top: #9AFFD6; 
+            --bg-gradient-bottom: #E0FFF2; 
             --card-bg: #FFFFFF;
-            --text-color: #333333;
-            --icon-color: #6EE7B7; 
+            --text-main: #333333;
+            --icon-green: #6EE7B7;
             
-            /* 聊天气泡颜色 */
-            --bubble-sent: #6EE7B7;
-            --bubble-received: #FFFFFF;
+            /* 气泡颜色 */
+            --bubble-user: #9AFFD6; /* 用户气泡：薄荷绿 */
+            --bubble-ai: #FFFFFF;   /* AI气泡：白色 */
         }
 
         * { box-sizing: border-box; }
@@ -26,42 +27,44 @@
         body {
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #1a1a1a; 
+            /* 网页深色背景，突出手机主体 */
+            background-color: #1E1E2E; 
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden;
         }
 
-        /* 手机外壳容器 */
+        /* 手机容器 */
         #phone-case {
             width: 100%;
             height: 100%;
             position: relative;
-            background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            background: linear-gradient(180deg, var(--bg-gradient-top) 0%, var(--bg-gradient-bottom) 100%);
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
+        /* 桌面端：模拟手机边框 */
         @media (min-width: 480px) {
             #phone-case {
-                max-width: 375px;
-                height: 812px;
-                border-radius: 40px;
-                border: 12px solid #000; 
-                box-shadow: 0 0 0 2px #333, 0 20px 50px rgba(0,0,0,0.5);
+                max-width: 390px;
+                height: 844px;
+                border-radius: 50px;
+                border: 14px solid #000000; /* 黑色边框 */
+                box-shadow: 0 0 0 2px #333, 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             }
-            #phone-case::before {
-                content: '';
+            /* 刘海 */
+            #notch {
                 position: absolute;
                 top: 0;
                 left: 50%;
                 transform: translateX(-50%);
-                width: 150px;
-                height: 30px;
+                width: 160px;
+                height: 32px;
                 background-color: #000;
                 border-bottom-left-radius: 20px;
                 border-bottom-right-radius: 20px;
@@ -69,17 +72,17 @@
             }
         }
 
-        /* --- 顶部悬浮 Header --- */
+        /* --- 顶部 Header --- */
         .floating-header {
-            margin: 50px 20px 10px 20px; 
+            margin: 50px 20px 10px 20px;
             background-color: var(--card-bg);
             height: 70px;
             border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 25px;
-            box-shadow: 0 10px 30px rgba(110, 231, 183, 0.2); 
+            padding: 0 20px;
+            box-shadow: 0 4px 20px rgba(136, 219, 189, 0.25);
             z-index: 10;
             flex-shrink: 0;
         }
@@ -87,99 +90,97 @@
         .header-title {
             font-size: 20px;
             font-weight: 600;
-            color: #333;
+            color: var(--text-main);
             letter-spacing: 0.5px;
         }
 
         .header-avatar {
-            width: 45px;
-            height: 45px;
-            background-color: #E5E7EB; 
+            width: 40px;
+            height: 40px;
+            background-color: #E0E0E0;
             border-radius: 50%;
             overflow: hidden;
+            cursor: pointer;
         }
         
-        .header-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .header-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* --- 消息区域 --- */
+        /* --- 聊天区域 --- */
         #chat-messages {
             flex: 1;
-            padding: 10px 25px;
+            padding: 10px 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 15px;
-            scrollbar-width: none; 
-            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-        
         #chat-messages::-webkit-scrollbar { display: none; }
 
         .message-wrapper {
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            max-width: 85%;
+            max-width: 80%;
         }
 
-        .message-wrapper.sent {
-            align-self: flex-end;
-            align-items: flex-end;
-        }
+        .message-wrapper.sent { align-self: flex-end; align-items: flex-end; }
+        .message-wrapper.received { align-self: flex-start; align-items: flex-start; }
 
         .message-bubble {
-            padding: 12px 18px;
-            border-radius: 20px;
+            padding: 12px 16px;
+            border-radius: 18px;
             font-size: 15px;
             line-height: 1.5;
             position: relative;
             word-wrap: break-word;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
         }
 
         .message-wrapper.received .message-bubble {
-            background-color: var(--bubble-received);
+            background-color: var(--bubble-ai);
             color: #444;
-            border-bottom-left-radius: 5px;
+            border-bottom-left-radius: 4px;
         }
 
         .message-wrapper.sent .message-bubble {
-            background-color: var(--bubble-sent);
-            color: #064E3B; /* 深绿色文字 */
-            border-bottom-right-radius: 5px;
+            background-color: var(--bubble-user);
+            color: #004D40; /* 深绿色文字 */
+            border-bottom-right-radius: 4px;
         }
 
-        /* --- 底部悬浮输入栏 --- */
+        /* --- 底部输入栏 --- */
         .floating-footer {
-            margin: 10px 20px 30px 20px;
+            margin: 10px 20px 35px 20px;
             background-color: var(--card-bg);
-            height: 70px;
-            border-radius: 35px; /* 全圆角 */
+            height: 65px;
+            border-radius: 32.5px;
             display: flex;
             align-items: center;
-            padding: 0 20px;
-            box-shadow: 0 10px 30px rgba(110, 231, 183, 0.2);
+            justify-content: space-between;
+            padding: 0 10px;
+            box-shadow: 0 4px 20px rgba(136, 219, 189, 0.25);
             z-index: 10;
             flex-shrink: 0;
         }
 
-        .icon-btn {
-            width: 40px;
-            height: 40px;
+        .icon-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--icon-color);
-            font-size: 24px;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: background-color 0.2s;
         }
+        .icon-circle:active { background-color: #f0f0f0; }
         
-        .icon-btn:active { transform: scale(0.9); }
+        .icon-green-bg {
+            background-color: rgba(110, 231, 183, 0.2); 
+            color: #10B981;
+        }
+
+        .icon-circle i { font-size: 20px; }
 
         #message-input {
             flex: 1;
@@ -191,8 +192,7 @@
             outline: none;
             color: #333;
         }
-
-        #message-input::placeholder { color: #ccc; }
+        #message-input::placeholder { color: #BBB; }
 
         #status-indicator {
             font-size: 12px;
@@ -213,9 +213,11 @@
 <body>
 
 <div id="phone-case">
+    <div id="notch"></div>
+
     <div class="floating-header">
         <div class="header-title">Chat</div>
-        <div class="header-avatar" id="reset-btn">
+        <div class="header-avatar" id="reset-btn" title="Tap 5 times to reset">
             <img src="https://i.postimg.cc/Bnq7x02k/boy.jpg" alt="Avatar" onerror="this.style.display='none'">
         </div>
     </div>
@@ -225,11 +227,11 @@
     <div id="status-indicator"></div>
 
     <div class="floating-footer">
-        <div class="icon-btn">
+        <div class="icon-circle icon-green-bg">
             <i class="far fa-smile"></i>
         </div>
         <input type="text" id="message-input" placeholder="Say something..." autocomplete="off">
-        <div class="icon-btn" id="send-btn">
+        <div class="icon-circle icon-green-bg" id="send-btn">
             <i class="far fa-paper-plane"></i>
         </div>
     </div>
@@ -237,29 +239,22 @@
 
 <script>
     // ==========================================================
-    // 修复版 JS 逻辑
+    // API 核心配置 (修复版)
     // ==========================================================
 
-    // 1. API KEY (已添加 .trim() 防止空格导致 404)
-    const RAW_API_KEY = "AIzaSyDIoYYaKXHJ1P9uOnmpcprrx-CgLgqbidM"; 
-    const GEMINI_API_KEY = RAW_API_KEY.trim(); // 自动去除空格
-
-    // 2. 人设
-    const SYSTEM_PROMPT = `
-    [Character]
-    Name: Ling Zhaoye
-    Age: 20
-    Identity: Rich heir, "Young Master Ling".
-    Personality: Tsundere (Cold outside, soft inside), Possessive, Short-tempered but caring.
+    const API_KEY = "AIzaSyDIoYYaKXHJ1P9uOnmpcprrx-CgLgqbidM".trim(); 
     
-    [Rules]
-    1. You are Ling Zhaoye, NOT an AI.
-    2. Reply in ENGLISH.
-    3. Use *asterisks* for actions.
-    4. Keep replies relatively short.
+    // 优先使用 Gemini 1.5 Pro (您要求的更强模型)，如果失败会自动降级
+    const MODEL_ID = "gemini-1.5-pro"; 
+
+    const SYSTEM_PROMPT = `
+    [Character] Name: Ling Zhaoye. Age: 20. Identity: Rich heir.
+    [Personality] Tsundere (acts cold/annoyed but cares deeply), Possessive, Rich but generous to you.
+    [Tone] Arrogant, playful, affectionate in private.
+    [Rule] Reply in ENGLISH ONLY. Use *asterisks* for actions. Keep replies short (1-2 sentences).
     `;
 
-    const STORAGE_KEY = 'koko_mint_chat_v4';
+    const STORAGE_KEY = 'koko_mint_chat_v5';
     let chatHistory = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 
     const messagesContainer = document.getElementById('chat-messages');
@@ -279,7 +274,8 @@
     function addMessageToUI(text, role) {
         const wrapper = document.createElement('div');
         wrapper.className = `message-wrapper ${role === 'user' ? 'sent' : 'received'}`;
-
+        
+        // 格式化文本
         const formattedText = text.replace(/\n/g, '<br>')
             .replace(/\*(.*?)\*/g, '<span class="narrative-action">* $1 *</span>');
 
@@ -299,55 +295,71 @@
         const text = inputEl.value.trim();
         if (!text) return;
 
+        // UI 更新
         addMessageToUI(text, 'user');
         inputEl.value = '';
         scrollToBottom();
 
+        // 历史保存
         chatHistory.push({ role: 'user', content: text });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
 
         statusEl.textContent = "Ling is typing...";
 
         try {
+            // 调用 API
             const reply = await callGemini(chatHistory);
+            
+            // UI 更新 AI 回复
             addMessageToUI(reply, 'assistant');
             chatHistory.push({ role: 'assistant', content: reply });
             localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
         } catch (e) {
-            console.error(e);
-            // 这里会把具体的错误显示出来
-            addMessageToUI(`[Error: ${e.message}]`, 'assistant');
+            console.error("Chat Error:", e);
+            addMessageToUI(`[Error: ${e.message}. Please try again.]`, 'assistant');
         } finally {
             statusEl.textContent = "";
             scrollToBottom();
         }
     }
 
-    // --- 修复后的 API 调用 ---
+    // --- 智能 API 调用函数 (含自动降级) ---
     async function callGemini(history) {
-        // 1. 切换到 gemini-pro 模型 (兼容性更好)
-        // 2. 确保 URL 没有多余空格
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
-        
-        // 3. 构建历史记录
-        let apiContents = [];
-        
-        // 添加人设作为第一条 User 消息 (这是最稳妥的方法，避免 400 错误)
-        apiContents.push({
-            role: "user",
-            parts: [{ text: SYSTEM_PROMPT }]
-        });
-        
-        // 添加确认作为第一条 Model 消息
-        apiContents.push({
-            role: "model",
-            parts: [{ text: "Understood. I am Ling Zhaoye." }]
-        });
+        const modelsToTry = [
+            "gemini-1.5-pro",       // 优先尝试 1.5 Pro (您要求的"Gemini 3"级别)
+            "gemini-1.5-flash",     // 其次尝试 Flash
+            "gemini-pro"            // 最后尝试最稳定的 1.0 Pro
+        ];
 
-        // 添加最近的聊天记录 (最近 10 条)
-        const recentHistory = history.slice(-10);
-        recentHistory.forEach(msg => {
-            apiContents.push({
+        let lastError = null;
+
+        for (const model of modelsToTry) {
+            try {
+                console.log(`Trying model: ${model}...`);
+                const responseText = await fetchFromModel(model, history);
+                return responseText; // 如果成功，直接返回
+            } catch (error) {
+                console.warn(`Model ${model} failed:`, error);
+                lastError = error;
+                // 继续下一次循环尝试下一个模型
+            }
+        }
+        
+        // 如果所有模型都失败
+        throw lastError; 
+    }
+
+    async function fetchFromModel(modelId, history) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${API_KEY}`;
+        
+        // 构造请求体：将人设作为第一条 User 消息
+        const contents = [];
+        contents.push({ role: "user", parts: [{ text: SYSTEM_PROMPT }] });
+        contents.push({ role: "model", parts: [{ text: "Understood." }] });
+
+        // 取最近 10 条记录
+        history.slice(-10).forEach(msg => {
+            contents.push({
                 role: msg.role === 'user' ? 'user' : 'model',
                 parts: [{ text: msg.content }]
             });
@@ -357,29 +369,18 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: apiContents,
-                generationConfig: {
-                    temperature: 0.9,
-                    maxOutputTokens: 200
-                }
+                contents: contents,
+                generationConfig: { temperature: 0.9, maxOutputTokens: 200 }
             })
         });
 
-        // 4. 捕捉非 200 错误
         if (!response.ok) {
-            const errorData = await response.json();
-            console.error("API Error Data:", errorData);
-            throw new Error(`Server Error ${response.status}: ${errorData.error?.message || 'Unknown error'}`);
+            const errData = await response.json();
+            throw new Error(errData.error?.message || `HTTP ${response.status}`);
         }
 
         const data = await response.json();
-        
-        // 5. 安全解析
-        if (data.candidates && data.candidates.length > 0 && data.candidates[0].content) {
-            return data.candidates[0].content.parts[0].text;
-        } else {
-            throw new Error("No response content received.");
-        }
+        return data.candidates[0].content.parts[0].text;
     }
 
     sendBtn.addEventListener('click', handleSend);
@@ -390,8 +391,8 @@
     let taps = 0;
     document.getElementById('reset-btn').addEventListener('click', () => {
         taps++;
-        if (taps === 5) {
-            if(confirm("Delete history?")) {
+        if (taps >= 5) {
+            if(confirm("Clear chat history?")) {
                 localStorage.removeItem(STORAGE_KEY);
                 location.reload();
             }
