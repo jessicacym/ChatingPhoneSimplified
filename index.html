@@ -174,9 +174,9 @@
             transition: background-color 0.2s;
         }
         .icon-circle:active { background-color: #f0f0f0; }
-        
+
         .icon-green-bg {
-            background-color: rgba(110, 231, 183, 0.2); 
+            background-color: rgba(110, 231, 183, 0.2);
             color: #10B981;
         }
 
@@ -242,170 +242,94 @@
             content: "🎭 ";
         }
 
-        /* 表情包选择器样式 - 微信风格 */
-        .emoji-picker-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            top: 0;
-            background: rgba(0, 0, 0, 0.3);
-            z-index: 100;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-
-        .emoji-picker-overlay.show {
-            display: block;
-            opacity: 1;
-        }
-
+        /* 表情包选择器样式 */
         .emoji-picker {
             position: absolute;
             bottom: 110px;
             left: 0;
             right: 0;
-            height: 45%;
+            height: 280px;
             background: #f5f5f5;
-            border-radius: 16px 16px 0 0;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
-            display: flex;
+            display: none;
             flex-direction: column;
-            overflow: hidden;
-            z-index: 101;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
+            z-index: 50;
         }
 
         .emoji-picker.show {
-            transform: translateY(0);
+            display: flex;
         }
 
         .emoji-picker-header {
-            padding: 10px 16px;
-            background: #fff;
-            border-bottom: 1px solid #e5e5e5;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 10px 12px;
+            background: #f5f5f5;
             flex-shrink: 0;
         }
 
         .emoji-picker-tab {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            background: #f0f0f0;
-            border-radius: 16px;
-            font-size: 13px;
-            color: #333;
-        }
-
-        .emoji-picker-tab-icon {
-            width: 20px;
-            height: 20px;
-            background: #ddd;
-            border-radius: 4px;
-        }
-
-        .emoji-picker-close {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: #f0f0f0;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            color: #666;
-        }
-
-        .emoji-picker-close:hover {
-            background: #e0e0e0;
+            display: inline-block;
+            padding: 6px 14px;
+            background: #333;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #fff;
         }
 
         .emoji-picker-grid {
             flex: 1;
             overflow-y: auto;
-            padding: 12px 8px;
+            padding: 0 8px 8px 8px;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 6px;
-            background: #f5f5f5;
-            scrollbar-width: thin;
+            align-content: start;
         }
 
         .emoji-picker-grid::-webkit-scrollbar {
-            width: 6px;
+            width: 4px;
         }
 
         .emoji-picker-grid::-webkit-scrollbar-track {
             background: #e0e0e0;
-            border-radius: 3px;
         }
 
         .emoji-picker-grid::-webkit-scrollbar-thumb {
             background: #bbb;
-            border-radius: 3px;
+            border-radius: 2px;
         }
 
         .emoji-picker-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 8px 4px;
+            padding: 6px 4px 8px 4px;
             border-radius: 8px;
             cursor: pointer;
             background: #fff;
-            transition: background 0.15s ease;
-        }
-
-        .emoji-picker-item:hover {
-            background: #e8f5e9;
         }
 
         .emoji-picker-item:active {
-            background: #c8e6c9;
+            background: #e8e8e8;
         }
 
         .emoji-picker-item-img {
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             object-fit: contain;
-            border-radius: 6px;
-            margin-bottom: 4px;
+            border-radius: 4px;
         }
 
         .emoji-picker-item-name {
             font-size: 10px;
             color: #666;
             text-align: center;
+            margin-top: 4px;
             line-height: 1.2;
             max-width: 100%;
             overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            padding: 0 2px;
-        }
-
-        .emoji-picker-item .emoji-placeholder {
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f0f0f0;
-            border-radius: 6px;
-            font-size: 9px;
-            color: #999;
-            text-align: center;
-            padding: 4px;
-            word-break: break-word;
-            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
     </style>
 </head>
@@ -425,6 +349,14 @@
 
     <div id="status-indicator"></div>
 
+    <!-- 表情包选择器 -->
+    <div class="emoji-picker" id="emoji-picker">
+        <div class="emoji-picker-header">
+            <span class="emoji-picker-tab">默认分组</span>
+        </div>
+        <div class="emoji-picker-grid" id="emoji-grid"></div>
+    </div>
+
     <div class="floating-footer">
         <div class="icon-circle icon-green-bg" id="emoji-btn">
             <i class="far fa-smile"></i>
@@ -435,20 +367,6 @@
         </div>
     </div>
 
-    <!-- 表情包选择器 -->
-    <div class="emoji-picker-overlay" id="emoji-overlay"></div>
-    <div class="emoji-picker" id="emoji-picker">
-        <div class="emoji-picker-header">
-            <div class="emoji-picker-tab">
-                <div class="emoji-picker-tab-icon"></div>
-                <span>默认分组</span>
-            </div>
-            <button class="emoji-picker-close" id="emoji-close">&times;</button>
-        </div>
-        <div class="emoji-picker-grid" id="emoji-grid">
-            <!-- 表情包将通过JS动态填充 -->
-        </div>
-    </div>
 </div>
 
 <script>
@@ -479,80 +397,8 @@
         console.log(`  ${i + 1}. ${p.name} - 模型: ${p.model}`);
     });
 
-    // 表情包映射表 (名称 -> 图片URL)
+    // 表情包映射表 (名称 -> 图片URL) - 只保留可用的 catbox.moe 图片
     const EMOJI_PACK_MAP = {
-        "how dare you talk back": "http://sharkpan.xyz/f/vVBtL/mmexport1737057690899.png",
-        "no need to bow": "http://sharkpan.xyz/f/pO6uQ/mmexport1737057701883.png",
-        "just leave": "http://sharkpan.xyz/f/1vAc2/mmexport1737057678306.png",
-        "im satisfied": "http://sharkpan.xyz/f/e8KUw/mmexport1737057664689.png",
-        "gonna punch you": "http://sharkpan.xyz/f/oJ1i4/mmexport1737057862640.gif",
-        "youre a bad guy": "http://sharkpan.xyz/f/8r2Sj/mmexport1737057726579.png",
-        "caring about you": "http://sharkpan.xyz/f/Gvmil/mmexport1737057801285.gif",
-        "gonna bump into you": "http://sharkpan.xyz/f/zMZu5/mmexport1737057848709.gif",
-        "giving you a paper heart": "http://sharkpan.xyz/f/53nhj/345FFC998474F46C1A40B1567335DA03_0.gif",
-        "running to you": "http://sharkpan.xyz/f/kDOi6/0A231BF0BFAB3C2B243F9749B64F7444_0.gif",
-        "drooling": "http://sharkpan.xyz/f/j36f6/3010464DF8BD77B4A99AB23730F2EE57_0.gif",
-        "dancing happily to music": "http://sharkpan.xyz/f/aVwtY/0CBEE9105C7A98E0E6162A79CCD09EFA_0.gif",
-        "wiggling happily": "http://sharkpan.xyz/f/rOpu6/9277120A65282CFEAB9E191B34474729_0.gif",
-        "mopping floor": "http://sharkpan.xyz/f/DnJHK/F12BF133675BA34684A60CF38E17D328_0.gif",
-        "waving hello": "http://sharkpan.xyz/f/LgwT7/AC229A80203166B292155ADA057DE423_0.gif",
-        "obediently wearing collar": "http://sharkpan.xyz/f/qJJI3/E7B02761D317A00B912F328AA9F02565_0.gif",
-        "looking pitiful": "http://sharkpan.xyz/f/XgmcW/817B66DAB2414E1FC8D717570A602193_0.gif",
-        "giving you a gift": "http://sharkpan.xyz/f/2aACQ/A491786010A6E595A84B9F4D4EE58B27_0.gif",
-        "crying from grievance": "http://sharkpan.xyz/f/gVySw/D90D0B53802301FCDB1F0718DEB08C79_0.gif",
-        "cheering excitedly": "http://sharkpan.xyz/f/JXeig/68FD6090F0D187FC88794909AA4E4C30_0.gif",
-        "looking messy and dirty": "http://sharkpan.xyz/f/O6msy/897713F074EF610881EFD9A4D993B7DA_0.gif",
-        "resting on pillow": "http://sharkpan.xyz/f/6Mzua/7AF42F3AE5EA01AEDBA5A3C7437339FA_0.gif",
-        "happily eating bread": "http://sharkpan.xyz/f/nX5sl/Camera_1040g34o313t1veosi60g4almcsqnoumhanf8f98.jpg",
-        "dancing shyly": "http://sharkpan.xyz/f/mqdcW/Camera_1040g34o313t1verti60g4almcsqnoumhepqc530.jpg",
-        "reading recipe carefully": "http://sharkpan.xyz/f/BODsa/Camera_1040g0k0313t1vf2k1e004almcsqnoumhblfs9o0.jpg",
-        "shyly expressing love": "http://sharkpan.xyz/f/4Mdfj/IMG_20250131_212918.jpg",
-        "kissing excitedly": "http://sharkpan.xyz/f/NOVuv/Camera_XHS_17383302852781040g2sg31a0ceua57idg4a11eo5c0eoqn8udogg.jpg",
-        "big watery eyes": "http://sharkpan.xyz/f/VXnTY/Camera_XHS_17383302891351040g2sg31a0ceua57icg4a11eo5c0eoq7j77fu0.jpg",
-        "marry me i love you most": "http://sharkpan.xyz/f/xkmFX/Camera_XHS_17383302941971040g2sg31a0ceua57ia04a11eo5c0eoql8q50vg.jpg",
-        "standing obediently": "http://sharkpan.xyz/f/dlyH8/Camera_XHS_17383303028511040g00831aqhfp8fna405pf08cqh97tb5qhsf6o.jpg",
-        "scissors hand peace sign": "http://sharkpan.xyz/f/lrNCx/Camera_XHS_17383303062101040g00831aqhfp8fna4g5pf08cqh97tbcoki8f8.jpg",
-        "great job thumbs up": "http://sharkpan.xyz/f/K2Oto/Camera_XHS_17383303090201040g00831aqhfp8fna505pf08cqh97tbo91bmno.jpg",
-        "cat offering fish to apologize": "http://sharkpan.xyz/f/Qm1H6/Camera_XHS_17383303303421040g2sg3189ite3a3ujg5ofl7bm417a4rcgd0bg.jpg",
-        "cat covering mouth shyly": "http://sharkpan.xyz/f/ZOmuW/Camera_XHS_17383303329411040g2sg3189ite3a3uj05ofl7bm417a4kppd5v8.jpg",
-        "cat crying waiting for food": "http://sharkpan.xyz/f/W2BfW/Camera_XHS_17383303352131040g2sg3189ite3a3uhg5ofl7bm417a4psbct30.jpg",
-        "please guide me": "http://sharkpan.xyz/f/0MjhX/Camera_XHS_17383303606011040g00831bogh2040u104ag8aht6f2mpkhq67r0.jpg",
-        "keep in touch": "http://sharkpan.xyz/f/yk4HN/Camera_XHS_17383303659031040g00831bogh2040u2g4ag8aht6f2mpeus4ul8.jpg",
-        "dont forget": "http://sharkpan.xyz/f/vBDIL/Camera_XHS_17383303686641040g00831bogh2040u304ag8aht6f2mppr4gni0.jpg",
-        "so happy": "http://sharkpan.xyz/f/pg1IQ/Camera_XHS_17383303710381040g00831bogh2040u3g4ag8aht6f2mpf2epg78.jpg",
-        "yay": "http://sharkpan.xyz/f/1MjS2/Camera_XHS_17383303739941040g00831bogh2040u4g4ag8aht6f2mpik7q0ag.jpg",
-        "its okay no worries": "http://sharkpan.xyz/f/erOSw/Camera_XHS_17383303793581040g00831bogh2040u604ag8aht6f2mpo9j26l0.jpg",
-        "little mouse drinking": "http://sharkpan.xyz/f/8Mgij/Camera_XHS_17383305816431040g00831bv6at85gm6g5n6lbcu5s4aorps5mr8.jpg",
-        "pouting sadly": "http://sharkpan.xyz/f/713sj/307F8B36E1F2A49573E6562193AA71BF_0.gif",
-        "suddenly waking up from nightmare": "http://sharkpan.xyz/f/ADwCZ/04A8CC14F4C317F5E0DA84AD2A8BE1FF_0.gif",
-        "cat running fast": "http://sharkpan.xyz/f/wqghq/B8578FD25ED069B8AF1B0AC35F20770B_0.gif",
-        "awkwardly moving ears": "http://sharkpan.xyz/f/M4OUa/DA8F0F3F2B2C1F567258724B9EA59623_0.gif",
-        "swaying excitedly": "http://sharkpan.xyz/f/30lHe/1507DB48EFC13593A4766C51F33BFC1C_0.gif",
-        "hands on hips": "http://sharkpan.xyz/f/5xnSj/9B6915837A055D7EF9CE0DD18BC0E60F_0.jpg",
-        "cat peeking at you": "http://sharkpan.xyz/f/kXOI6/C0FC1927068E1F87D38FA09B7F51F830_0.gif",
-        "cat jumping happily": "http://sharkpan.xyz/f/jq6H6/413DB04EE36F940E3381C99402CE2E44_0.gif",
-        "waving hands happily": "http://sharkpan.xyz/f/aJwtY/11BB0DE666912CED03486468EA5DB258_0.gif",
-        "rolling on ground unreasonably": "http://sharkpan.xyz/f/rmpI6/7D87F6F45B1AEDAABC0EF119E977732F_0.gif",
-        "crying and rolling in fear": "http://sharkpan.xyz/f/DXJcK/E419CF47415150B8CBADD767F09017C9_0.gif",
-        "working hard": "http://sharkpan.xyz/f/LBwS7/6251D891E0E3FB87FCDC50BECCCD4559_0.gif",
-        "fighting": "http://sharkpan.xyz/f/qnJt3/19650FABB205847C0D505FF2B361B194_0.gif",
-        "dancing proudly": "http://sharkpan.xyz/f/XmmcW/B7973C500D9E981A083A5F3E75CF198A_0.gif",
-        "im ready": "http://sharkpan.xyz/f/2ZAFQ/F0A74F31B23E7C20AB50B4A960344056_0.gif",
-        "hang in there": "http://sharkpan.xyz/f/g4yCw/CF6BE01FF89BB72BE179A537104984A5_0.gif",
-        "screaming": "http://sharkpan.xyz/f/JneTg/3ED8B290F429F8FCC5D533CCC0568086_0.gif",
-        "startled and shaking": "http://sharkpan.xyz/f/OLmCy/AB70AB259C3BD064624A1349779B072C_0.gif",
-        "losing all strength": "http://sharkpan.xyz/f/6Azsa/3BEBF677C8FD51DFF757BB62DA22C0A8_0.jpg",
-        "taking big bite of food": "http://sharkpan.xyz/f/nJ5Ul/5E4285F661C54F06BEFB881AD07BC3FB_0.jpg",
-        "you have no taste if you dont like me": "http://sharkpan.xyz/f/mgduW/4F3224BCDAF9298F644572715BDA7EB9_0.jpg",
-        "sleeping till death": "http://sharkpan.xyz/f/BLDsa/EC0D48BDAAB071654E0112599A6FA57B_0.jpg",
-        "getting angry red": "http://sharkpan.xyz/f/4YdFj/C13A42E1CB05564DF9060B2D93617086_0.jpg",
-        "shaking butt": "http://sharkpan.xyz/f/NDVhv/EE91A0C1472A9D3D3F01DAD6E6BF6B3B_0.gif",
-        "failed leaving sadly": "http://sharkpan.xyz/f/V6niY/19CC4600A7EAE5CC33257376EA8E11E7_0.gif",
-        "blushing shyly": "http://sharkpan.xyz/f/xXmSX/8664EF605A192AC3B392E3FDE8DCB695_0.gif",
-        "screaming loudly": "http://sharkpan.xyz/f/dnyt8/A95DD11A432A74CAD0CF9E3B97DA96A2_0.gif",
-        "im thick skinned": "http://sharkpan.xyz/f/l2Nux/0C0EA6213E96C0992356DFC48500EE08_0.jpg",
-        "dont look down on me": "http://sharkpan.xyz/f/JnJIg/4344AAD53418BAE9569B06CEF9CFDDED_0.jpg",
-        "singing proudly": "http://sharkpan.xyz/f/OLjSy/AA21937C7A115FCF4B87DC646E13C572_0.jpg",
         "happily being fed": "https://files.catbox.moe/8uz920.jpg",
         "spinning happily": "https://files.catbox.moe/26rwpc.jpg",
         "happy": "https://files.catbox.moe/9242jm.jpg",
@@ -634,19 +480,19 @@
     - Emoji pack should match your current mood and tsundere personality
     - Send emoji pack as a SEPARATE message after your text reply
     - Only use emoji packs from this list (copy exactly):
-    ${EMOJI_PACK_LIST.slice(0, 50).join(", ")}...
+    ${EMOJI_PACK_LIST.join(", ")}
 
     Example responses:
     - Normal reply: "Hmph, whatever. *looks away*"
     - With emoji: "Hmph, whatever. *looks away*\n[bqb-looking proud]"
-    - Shy moment: "I-It's not like I care about you! *blushes*\n[bqb-blushing shyly]"
+    - Shy moment: "I-It's not like I care about you! *blushes*\n[bqb-shy]"
     - Angry: "You idiot! *crosses arms*\n[bqb-glaring angrily]"
 
     Common emoji suggestions for your personality:
-    - Tsundere moments: "blushing shyly", "looking proud", "hands on hips", "a bit angry"
-    - Caring moments: "caring about you", "giving you heart", "happily being fed"
-    - Annoyed: "how dare you talk back", "gonna punch you", "frowning"
-    - Happy (hiding it): "wiggling happily", "cat peeking at you", "oh yeah"
+    - Tsundere moments: "shy", "looking proud", "a bit angry", "frowning"
+    - Caring moments: "giving you heart", "happily being fed", "big love", "hug"
+    - Annoyed: "glaring angrily", "frowning", "crying from anger"
+    - Happy (hiding it): "oh yeah", "happy", "spinning happily"
     `;
 
     // ==========================================================
@@ -1135,34 +981,20 @@
     // ==========================================================
     const emojiBtn = document.getElementById('emoji-btn');
     const emojiPicker = document.getElementById('emoji-picker');
-    const emojiOverlay = document.getElementById('emoji-overlay');
-    const emojiClose = document.getElementById('emoji-close');
     const emojiGrid = document.getElementById('emoji-grid');
 
     // 初始化表情包选择器
     function initEmojiPicker() {
-        // 清空并填充表情包网格
         emojiGrid.innerHTML = '';
-
         Object.entries(EMOJI_PACK_MAP).forEach(([name, url]) => {
             const item = document.createElement('div');
             item.className = 'emoji-picker-item';
-            item.title = name;
 
-            // 创建图片
             const img = document.createElement('img');
             img.src = url;
             img.alt = name;
             img.className = 'emoji-picker-item-img';
-            img.onerror = function() {
-                this.style.display = 'none';
-                const placeholder = document.createElement('div');
-                placeholder.className = 'emoji-placeholder';
-                placeholder.textContent = name;
-                this.parentElement.insertBefore(placeholder, this.nextSibling);
-            };
 
-            // 创建名称标签
             const label = document.createElement('span');
             label.className = 'emoji-picker-item-name';
             label.textContent = name;
@@ -1170,7 +1002,6 @@
             item.appendChild(img);
             item.appendChild(label);
 
-            // 点击发送表情包
             item.addEventListener('click', () => {
                 sendEmojiPack(name);
                 closeEmojiPicker();
@@ -1180,68 +1011,45 @@
         });
     }
 
-    // 打开表情包选择器
     function openEmojiPicker() {
-        emojiOverlay.classList.add('show');
         emojiPicker.classList.add('show');
     }
 
-    // 关闭表情包选择器
     function closeEmojiPicker() {
-        emojiOverlay.classList.remove('show');
         emojiPicker.classList.remove('show');
     }
 
-    // 发送表情包消息
+    function toggleEmojiPicker() {
+        emojiPicker.classList.toggle('show');
+    }
+
     async function sendEmojiPack(emojiName) {
         const emojiMessage = `[bqb-${emojiName}]`;
-
-        // UI 更新 - 显示用户发送的表情包
         addMessageToUI(emojiMessage, 'user');
         scrollToBottom();
-
-        // 保存到历史记录
         chatHistory.push({ role: 'user', content: emojiMessage });
         await saveChatHistory();
 
         statusEl.textContent = "Ling is typing...";
-
         try {
-            // 调用 API 获取回复
             const reply = await callGemini(chatHistory);
-
-            // 处理 AI 回复
             const parts = processAIReply(reply);
-
-            // 逐个显示消息部分
             for (let i = 0; i < parts.length; i++) {
-                const part = parts[i];
-
-                if (i > 0) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                }
-
-                addMessageToUI(part.content, 'assistant');
+                if (i > 0) await new Promise(r => setTimeout(r, 500));
+                addMessageToUI(parts[i].content, 'assistant');
                 scrollToBottom();
-                chatHistory.push({ role: 'assistant', content: part.content });
+                chatHistory.push({ role: 'assistant', content: parts[i].content });
             }
-
             await saveChatHistory();
         } catch (e) {
-            console.error("Chat Error:", e);
-            addMessageToUI(`[Error: ${e.message}. Please try again.]`, 'assistant');
+            addMessageToUI(`[Error: ${e.message}]`, 'assistant');
         } finally {
             statusEl.textContent = "";
             scrollToBottom();
         }
     }
 
-    // 事件监听器
-    emojiBtn.addEventListener('click', openEmojiPicker);
-    emojiClose.addEventListener('click', closeEmojiPicker);
-    emojiOverlay.addEventListener('click', closeEmojiPicker);
-
-    // 初始化表情包选择器
+    emojiBtn.addEventListener('click', toggleEmojiPicker);
     initEmojiPicker();
 
     init();
