@@ -211,26 +211,35 @@
 
         /* 表情包消息样式 */
         .emoji-pack-bubble {
-            background: linear-gradient(135deg, #FFE4EC 0%, #FFF0F5 100%) !important;
-            border: 2px solid #FFB6C1;
-            padding: 10px 14px !important;
-            border-radius: 15px !important;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            color: #D63384;
-            box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);
+            background: transparent !important;
+            border: none !important;
+            padding: 5px !important;
+            border-radius: 12px !important;
+            box-shadow: none !important;
+            max-width: 180px;
         }
 
-        .emoji-pack-bubble::before {
-            content: "🎭";
-            font-size: 16px;
+        .emoji-pack-img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 12px;
+            object-fit: contain;
+            display: block;
         }
 
         .emoji-pack-name {
             font-weight: 500;
             font-style: italic;
+            color: #D63384;
+            background: linear-gradient(135deg, #FFE4EC 0%, #FFF0F5 100%);
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 2px solid #FFB6C1;
+            display: inline-block;
+        }
+
+        .emoji-pack-name::before {
+            content: "🎭 ";
         }
     </style>
 </head>
@@ -289,41 +298,148 @@
         console.log(`  ${i + 1}. ${p.name} - 模型: ${p.model}`);
     });
 
-    // 表情包列表 (英文版)
-    const EMOJI_PACK_LIST = [
-        "how dare you talk back", "no need to bow", "just leave", "im satisfied", "gonna punch you",
-        "youre a bad guy", "caring about you", "gonna bump into you", "giving you a paper heart",
-        "running to you", "drooling", "dancing happily to music", "wiggling happily", "mopping floor",
-        "waving hello", "obediently wearing collar", "looking pitiful", "giving you a gift",
-        "crying from grievance", "cheering excitedly", "looking messy and dirty", "resting on pillow",
-        "happily eating bread", "dancing shyly", "reading recipe carefully", "shyly expressing love",
-        "kissing excitedly", "big watery eyes", "marry me i love you most", "standing obediently",
-        "scissors hand peace sign", "great job thumbs up", "cat offering fish to apologize",
-        "cat covering mouth shyly", "cat crying waiting for food", "please guide me",
-        "keep in touch", "dont forget", "so happy", "yay", "its okay no worries",
-        "little mouse drinking", "pouting sadly", "suddenly waking up from nightmare",
-        "cat running fast", "awkwardly moving ears", "swaying excitedly", "hands on hips",
-        "cat peeking at you", "cat jumping happily", "waving hands happily",
-        "rolling on ground unreasonably", "crying and rolling in fear", "working hard", "fighting",
-        "dancing proudly", "im ready", "hang in there", "screaming", "startled and shaking",
-        "losing all strength", "taking big bite of food", "you have no taste if you dont like me",
-        "sleeping till death", "getting angry red", "shaking butt", "failed leaving sadly",
-        "blushing shyly", "screaming loudly", "im thick skinned", "dont look down on me",
-        "singing proudly", "happily being fed", "spinning happily", "happy", "big love",
-        "like", "looking at phone happily", "oh yeah", "giving you heart", "hugging tightly",
-        "following obediently", "kiss", "kissing lovingly", "holding you", "flattering hand kiss",
-        "pleading face", "licking", "hug", "pouncing over", "puppy jumping over",
-        "looking proud", "hopping around", "rolling in mud", "tiptoeing", "waiting for food",
-        "sneaking food", "rubbing against leg", "robbery", "pointing gun at you",
-        "biting biting biting", "meaningless roaring", "eye burning", "nervous cold sweat smile",
-        "feeling guilty after mistake", "acting innocent", "being careful", "shy",
-        "about to cry", "feeling wronged", "eyes tearing up", "crying", "crying urgently",
-        "crying from anger", "empty bowl", "honey come back", "scared", "shocked cat",
-        "shocked and blurry", "expecting", "frowning", "glaring angrily", "a bit angry",
-        "mind going blank", "brain CPU burned", "peeking around", "behaving now",
-        "died peacefully", "beaten to death", "sleeping soundly", "dogeza apologizing",
-        "lonely sad dog", "being obedient dog", "dog with food bowl", "fighting dog", "hamburger dog"
-    ];
+    // 表情包映射表 (名称 -> 图片URL)
+    const EMOJI_PACK_MAP = {
+        "how dare you talk back": "http://sharkpan.xyz/f/vVBtL/mmexport1737057690899.png",
+        "no need to bow": "http://sharkpan.xyz/f/pO6uQ/mmexport1737057701883.png",
+        "just leave": "http://sharkpan.xyz/f/1vAc2/mmexport1737057678306.png",
+        "im satisfied": "http://sharkpan.xyz/f/e8KUw/mmexport1737057664689.png",
+        "gonna punch you": "http://sharkpan.xyz/f/oJ1i4/mmexport1737057862640.gif",
+        "youre a bad guy": "http://sharkpan.xyz/f/8r2Sj/mmexport1737057726579.png",
+        "caring about you": "http://sharkpan.xyz/f/Gvmil/mmexport1737057801285.gif",
+        "gonna bump into you": "http://sharkpan.xyz/f/zMZu5/mmexport1737057848709.gif",
+        "giving you a paper heart": "http://sharkpan.xyz/f/53nhj/345FFC998474F46C1A40B1567335DA03_0.gif",
+        "running to you": "http://sharkpan.xyz/f/kDOi6/0A231BF0BFAB3C2B243F9749B64F7444_0.gif",
+        "drooling": "http://sharkpan.xyz/f/j36f6/3010464DF8BD77B4A99AB23730F2EE57_0.gif",
+        "dancing happily to music": "http://sharkpan.xyz/f/aVwtY/0CBEE9105C7A98E0E6162A79CCD09EFA_0.gif",
+        "wiggling happily": "http://sharkpan.xyz/f/rOpu6/9277120A65282CFEAB9E191B34474729_0.gif",
+        "mopping floor": "http://sharkpan.xyz/f/DnJHK/F12BF133675BA34684A60CF38E17D328_0.gif",
+        "waving hello": "http://sharkpan.xyz/f/LgwT7/AC229A80203166B292155ADA057DE423_0.gif",
+        "obediently wearing collar": "http://sharkpan.xyz/f/qJJI3/E7B02761D317A00B912F328AA9F02565_0.gif",
+        "looking pitiful": "http://sharkpan.xyz/f/XgmcW/817B66DAB2414E1FC8D717570A602193_0.gif",
+        "giving you a gift": "http://sharkpan.xyz/f/2aACQ/A491786010A6E595A84B9F4D4EE58B27_0.gif",
+        "crying from grievance": "http://sharkpan.xyz/f/gVySw/D90D0B53802301FCDB1F0718DEB08C79_0.gif",
+        "cheering excitedly": "http://sharkpan.xyz/f/JXeig/68FD6090F0D187FC88794909AA4E4C30_0.gif",
+        "looking messy and dirty": "http://sharkpan.xyz/f/O6msy/897713F074EF610881EFD9A4D993B7DA_0.gif",
+        "resting on pillow": "http://sharkpan.xyz/f/6Mzua/7AF42F3AE5EA01AEDBA5A3C7437339FA_0.gif",
+        "happily eating bread": "http://sharkpan.xyz/f/nX5sl/Camera_1040g34o313t1veosi60g4almcsqnoumhanf8f98.jpg",
+        "dancing shyly": "http://sharkpan.xyz/f/mqdcW/Camera_1040g34o313t1verti60g4almcsqnoumhepqc530.jpg",
+        "reading recipe carefully": "http://sharkpan.xyz/f/BODsa/Camera_1040g0k0313t1vf2k1e004almcsqnoumhblfs9o0.jpg",
+        "shyly expressing love": "http://sharkpan.xyz/f/4Mdfj/IMG_20250131_212918.jpg",
+        "kissing excitedly": "http://sharkpan.xyz/f/NOVuv/Camera_XHS_17383302852781040g2sg31a0ceua57idg4a11eo5c0eoqn8udogg.jpg",
+        "big watery eyes": "http://sharkpan.xyz/f/VXnTY/Camera_XHS_17383302891351040g2sg31a0ceua57icg4a11eo5c0eoq7j77fu0.jpg",
+        "marry me i love you most": "http://sharkpan.xyz/f/xkmFX/Camera_XHS_17383302941971040g2sg31a0ceua57ia04a11eo5c0eoql8q50vg.jpg",
+        "standing obediently": "http://sharkpan.xyz/f/dlyH8/Camera_XHS_17383303028511040g00831aqhfp8fna405pf08cqh97tb5qhsf6o.jpg",
+        "scissors hand peace sign": "http://sharkpan.xyz/f/lrNCx/Camera_XHS_17383303062101040g00831aqhfp8fna4g5pf08cqh97tbcoki8f8.jpg",
+        "great job thumbs up": "http://sharkpan.xyz/f/K2Oto/Camera_XHS_17383303090201040g00831aqhfp8fna505pf08cqh97tbo91bmno.jpg",
+        "cat offering fish to apologize": "http://sharkpan.xyz/f/Qm1H6/Camera_XHS_17383303303421040g2sg3189ite3a3ujg5ofl7bm417a4rcgd0bg.jpg",
+        "cat covering mouth shyly": "http://sharkpan.xyz/f/ZOmuW/Camera_XHS_17383303329411040g2sg3189ite3a3uj05ofl7bm417a4kppd5v8.jpg",
+        "cat crying waiting for food": "http://sharkpan.xyz/f/W2BfW/Camera_XHS_17383303352131040g2sg3189ite3a3uhg5ofl7bm417a4psbct30.jpg",
+        "please guide me": "http://sharkpan.xyz/f/0MjhX/Camera_XHS_17383303606011040g00831bogh2040u104ag8aht6f2mpkhq67r0.jpg",
+        "keep in touch": "http://sharkpan.xyz/f/yk4HN/Camera_XHS_17383303659031040g00831bogh2040u2g4ag8aht6f2mpeus4ul8.jpg",
+        "dont forget": "http://sharkpan.xyz/f/vBDIL/Camera_XHS_17383303686641040g00831bogh2040u304ag8aht6f2mppr4gni0.jpg",
+        "so happy": "http://sharkpan.xyz/f/pg1IQ/Camera_XHS_17383303710381040g00831bogh2040u3g4ag8aht6f2mpf2epg78.jpg",
+        "yay": "http://sharkpan.xyz/f/1MjS2/Camera_XHS_17383303739941040g00831bogh2040u4g4ag8aht6f2mpik7q0ag.jpg",
+        "its okay no worries": "http://sharkpan.xyz/f/erOSw/Camera_XHS_17383303793581040g00831bogh2040u604ag8aht6f2mpo9j26l0.jpg",
+        "little mouse drinking": "http://sharkpan.xyz/f/8Mgij/Camera_XHS_17383305816431040g00831bv6at85gm6g5n6lbcu5s4aorps5mr8.jpg",
+        "pouting sadly": "http://sharkpan.xyz/f/713sj/307F8B36E1F2A49573E6562193AA71BF_0.gif",
+        "suddenly waking up from nightmare": "http://sharkpan.xyz/f/ADwCZ/04A8CC14F4C317F5E0DA84AD2A8BE1FF_0.gif",
+        "cat running fast": "http://sharkpan.xyz/f/wqghq/B8578FD25ED069B8AF1B0AC35F20770B_0.gif",
+        "awkwardly moving ears": "http://sharkpan.xyz/f/M4OUa/DA8F0F3F2B2C1F567258724B9EA59623_0.gif",
+        "swaying excitedly": "http://sharkpan.xyz/f/30lHe/1507DB48EFC13593A4766C51F33BFC1C_0.gif",
+        "hands on hips": "http://sharkpan.xyz/f/5xnSj/9B6915837A055D7EF9CE0DD18BC0E60F_0.jpg",
+        "cat peeking at you": "http://sharkpan.xyz/f/kXOI6/C0FC1927068E1F87D38FA09B7F51F830_0.gif",
+        "cat jumping happily": "http://sharkpan.xyz/f/jq6H6/413DB04EE36F940E3381C99402CE2E44_0.gif",
+        "waving hands happily": "http://sharkpan.xyz/f/aJwtY/11BB0DE666912CED03486468EA5DB258_0.gif",
+        "rolling on ground unreasonably": "http://sharkpan.xyz/f/rmpI6/7D87F6F45B1AEDAABC0EF119E977732F_0.gif",
+        "crying and rolling in fear": "http://sharkpan.xyz/f/DXJcK/E419CF47415150B8CBADD767F09017C9_0.gif",
+        "working hard": "http://sharkpan.xyz/f/LBwS7/6251D891E0E3FB87FCDC50BECCCD4559_0.gif",
+        "fighting": "http://sharkpan.xyz/f/qnJt3/19650FABB205847C0D505FF2B361B194_0.gif",
+        "dancing proudly": "http://sharkpan.xyz/f/XmmcW/B7973C500D9E981A083A5F3E75CF198A_0.gif",
+        "im ready": "http://sharkpan.xyz/f/2ZAFQ/F0A74F31B23E7C20AB50B4A960344056_0.gif",
+        "hang in there": "http://sharkpan.xyz/f/g4yCw/CF6BE01FF89BB72BE179A537104984A5_0.gif",
+        "screaming": "http://sharkpan.xyz/f/JneTg/3ED8B290F429F8FCC5D533CCC0568086_0.gif",
+        "startled and shaking": "http://sharkpan.xyz/f/OLmCy/AB70AB259C3BD064624A1349779B072C_0.gif",
+        "losing all strength": "http://sharkpan.xyz/f/6Azsa/3BEBF677C8FD51DFF757BB62DA22C0A8_0.jpg",
+        "taking big bite of food": "http://sharkpan.xyz/f/nJ5Ul/5E4285F661C54F06BEFB881AD07BC3FB_0.jpg",
+        "you have no taste if you dont like me": "http://sharkpan.xyz/f/mgduW/4F3224BCDAF9298F644572715BDA7EB9_0.jpg",
+        "sleeping till death": "http://sharkpan.xyz/f/BLDsa/EC0D48BDAAB071654E0112599A6FA57B_0.jpg",
+        "getting angry red": "http://sharkpan.xyz/f/4YdFj/C13A42E1CB05564DF9060B2D93617086_0.jpg",
+        "shaking butt": "http://sharkpan.xyz/f/NDVhv/EE91A0C1472A9D3D3F01DAD6E6BF6B3B_0.gif",
+        "failed leaving sadly": "http://sharkpan.xyz/f/V6niY/19CC4600A7EAE5CC33257376EA8E11E7_0.gif",
+        "blushing shyly": "http://sharkpan.xyz/f/xXmSX/8664EF605A192AC3B392E3FDE8DCB695_0.gif",
+        "screaming loudly": "http://sharkpan.xyz/f/dnyt8/A95DD11A432A74CAD0CF9E3B97DA96A2_0.gif",
+        "im thick skinned": "http://sharkpan.xyz/f/l2Nux/0C0EA6213E96C0992356DFC48500EE08_0.jpg",
+        "dont look down on me": "http://sharkpan.xyz/f/JnJIg/4344AAD53418BAE9569B06CEF9CFDDED_0.jpg",
+        "singing proudly": "http://sharkpan.xyz/f/OLjSy/AA21937C7A115FCF4B87DC646E13C572_0.jpg",
+        "happily being fed": "https://files.catbox.moe/8uz920.jpg",
+        "spinning happily": "https://files.catbox.moe/26rwpc.jpg",
+        "happy": "https://files.catbox.moe/9242jm.jpg",
+        "big love": "https://files.catbox.moe/wabm2j.jpg",
+        "like": "https://files.catbox.moe/l7j4vy.jpg",
+        "looking at phone happily": "https://files.catbox.moe/e2eqzc.jpg",
+        "oh yeah": "https://files.catbox.moe/nff4qi.jpg",
+        "giving you heart": "https://files.catbox.moe/o3boww.jpg",
+        "hugging tightly": "https://files.catbox.moe/2hon5k.jpg",
+        "following obediently": "https://files.catbox.moe/ydtn6e.jpg",
+        "kiss": "https://files.catbox.moe/l14x54.jpg",
+        "kissing lovingly": "https://files.catbox.moe/wqn5ki.jpg",
+        "holding you": "https://files.catbox.moe/pxn8x6.jpg",
+        "flattering hand kiss": "https://files.catbox.moe/cxdhkh.jpg",
+        "pleading face": "https://files.catbox.moe/i5etcm.jpg",
+        "licking": "https://files.catbox.moe/p0vdxk.jpg",
+        "hug": "https://files.catbox.moe/qt4qzg.jpg",
+        "pouncing over": "https://files.catbox.moe/czdmyn.jpg",
+        "puppy jumping over": "https://files.catbox.moe/9yz8nz.jpg",
+        "looking proud": "https://files.catbox.moe/h1mf7j.jpg",
+        "hopping around": "https://files.catbox.moe/q6bahb.jpg",
+        "rolling in mud": "https://files.catbox.moe/ofy8ic.jpg",
+        "tiptoeing": "https://files.catbox.moe/7mdkef.jpg",
+        "waiting for food": "https://files.catbox.moe/ppi7e4.jpg",
+        "sneaking food": "https://files.catbox.moe/ur7vh9.jpg",
+        "rubbing against leg": "https://files.catbox.moe/dzoxjx.jpg",
+        "robbery": "https://files.catbox.moe/cz3umm.jpg",
+        "pointing gun at you": "https://files.catbox.moe/zvm5n2.jpg",
+        "biting biting biting": "https://files.catbox.moe/ogs4t5.jpg",
+        "meaningless roaring": "https://files.catbox.moe/0vetoe.jpg",
+        "eye burning": "https://files.catbox.moe/91c91h.jpg",
+        "nervous cold sweat smile": "https://files.catbox.moe/nj0i5e.png",
+        "feeling guilty after mistake": "https://files.catbox.moe/rejhsf.jpg",
+        "acting innocent": "https://files.catbox.moe/pdjeef.jpg",
+        "being careful": "https://files.catbox.moe/1mm5y1.jpg",
+        "shy": "https://files.catbox.moe/rqtdfm.jpg",
+        "about to cry": "https://files.catbox.moe/cdaxhk.jpg",
+        "feeling wronged": "https://files.catbox.moe/r89k3c.jpg",
+        "eyes tearing up": "https://files.catbox.moe/yqwu7e.jpg",
+        "crying": "https://files.catbox.moe/a1518p.jpg",
+        "crying urgently": "https://files.catbox.moe/wok7sq.jpg",
+        "crying from anger": "https://files.catbox.moe/qfljha.jpg",
+        "empty bowl": "https://files.catbox.moe/i9682x.jpg",
+        "honey come back": "https://files.catbox.moe/ge0bjd.jpg",
+        "scared": "https://files.catbox.moe/k8mfa6.jpg",
+        "shocked cat": "https://files.catbox.moe/bhytrl.jpg",
+        "shocked and blurry": "https://files.catbox.moe/qdzxst.jpg",
+        "expecting": "https://files.catbox.moe/mii353.jpg",
+        "frowning": "https://files.catbox.moe/785has.jpg",
+        "glaring angrily": "https://files.catbox.moe/mzoekx.jpg",
+        "a bit angry": "https://files.catbox.moe/evzdkv.jpg",
+        "mind going blank": "https://files.catbox.moe/jqnaxs.jpg",
+        "brain CPU burned": "https://files.catbox.moe/mrzvy0.gif",
+        "peeking around": "https://files.catbox.moe/6p8w3k.gif",
+        "behaving now": "https://files.catbox.moe/rv76c1.jpg",
+        "died peacefully": "https://files.catbox.moe/dcm5f9.jpg",
+        "beaten to death": "https://files.catbox.moe/qqibg1.jpg",
+        "sleeping soundly": "https://files.catbox.moe/pvbfg6.jpg",
+        "dogeza apologizing": "https://files.catbox.moe/qjnck3.jpg",
+        "lonely sad dog": "https://files.catbox.moe/z09102.jpg",
+        "being obedient dog": "https://files.catbox.moe/bgid0b.jpg",
+        "dog with food bowl": "https://files.catbox.moe/o196se.jpg",
+        "fighting dog": "https://files.catbox.moe/c5ccwc.jpg",
+        "hamburger dog": "https://files.catbox.moe/prowke.jpg"
+    };
+
+    // 表情包名称列表（供AI使用）
+    const EMOJI_PACK_LIST = Object.keys(EMOJI_PACK_MAP);
 
     const SYSTEM_PROMPT = `
     [Character] Name: Ling Zhaoye. Age: 20. Identity: Rich heir.
@@ -542,9 +658,18 @@
             wrapper.className = `message-wrapper ${role === 'user' ? 'sent' : 'received'}`;
 
             const emojiName = extractEmojiPackName(text);
+            const emojiUrl = EMOJI_PACK_MAP[emojiName];
+
             const bubble = document.createElement('div');
             bubble.className = 'message-bubble emoji-pack-bubble';
-            bubble.innerHTML = `<span class="emoji-pack-name">${emojiName}</span>`;
+
+            if (emojiUrl) {
+                // 显示表情包图片
+                bubble.innerHTML = `<img src="${emojiUrl}" alt="${emojiName}" class="emoji-pack-img" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\\'emoji-pack-name\\'>${emojiName}</span>';">`;
+            } else {
+                // 没有找到对应图片，显示文字
+                bubble.innerHTML = `<span class="emoji-pack-name">${emojiName}</span>`;
+            }
 
             wrapper.appendChild(bubble);
             messagesContainer.appendChild(wrapper);
