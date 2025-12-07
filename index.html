@@ -8,19 +8,31 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         /* =========================================
-           UI 设计：Figma 薄荷绿 + 黑色悬浮卡片风格
+           UI 设计：青苹果之梦 (Green Apple Dream) 主题
            ========================================= */
         :root {
-            /* 您的 Figma 配色 */
-            --bg-gradient-top: #9AFFD6; 
-            --bg-gradient-bottom: #E0FFF2; 
-            --card-bg: #FFFFFF;
-            --text-main: #333333;
-            --icon-green: #6EE7B7;
-            
+            /* 青苹果主题配色 */
+            --theme-primary: #CCE7B4;
+            --theme-primary-hover: #B4CB87;
+            --theme-secondary: #B7D2AE;
+            --bg-gradient-top: #F6F9EE;
+            --bg-gradient-bottom: #E8F5E0;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --text-main: #4A5C39;
+            --text-gray: #78886B;
+            --icon-green: #8BC34A;
+            --border-color: #E0F0D1;
+            --shadow-color: rgba(180, 203, 135, 0.25);
+
             /* 气泡颜色 */
-            --bubble-user: #9AFFD6; /* 用户气泡：薄荷绿 */
-            --bubble-ai: #FFFFFF;   /* AI气泡：白色 */
+            --bubble-user: rgba(204, 231, 180, 0.7);
+            --bubble-ai: rgba(255, 255, 255, 0.6);
+        }
+
+        /* 气泡浮动动画 */
+        @keyframes floatBubble {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
         }
 
         * { box-sizing: border-box; }
@@ -83,7 +95,9 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 20px;
-            box-shadow: 0 4px 20px rgba(136, 219, 189, 0.25);
+            box-shadow: 0 4px 20px var(--shadow-color);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
             z-index: 10;
             flex-shrink: 0;
         }
@@ -134,19 +148,25 @@
             line-height: 1.5;
             position: relative;
             word-wrap: break-word;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            transition: transform 0.2s ease;
         }
 
         .message-wrapper.received .message-bubble {
             background-color: var(--bubble-ai);
-            color: #444;
+            color: var(--text-main);
             border-bottom-left-radius: 4px;
+            box-shadow: 3px 3px 8px rgba(180, 203, 135, 0.2),
+                        -2px -2px 6px rgba(255, 255, 255, 0.7);
         }
 
         .message-wrapper.sent .message-bubble {
             background-color: var(--bubble-user);
-            color: #004D40; /* 深绿色文字 */
+            color: #2D4A1C;
             border-bottom-right-radius: 4px;
+            box-shadow: -3px 3px 8px rgba(180, 203, 135, 0.25),
+                        2px -2px 6px rgba(255, 255, 255, 0.7);
         }
 
         /* --- 底部输入栏 --- */
@@ -159,7 +179,9 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 10px;
-            box-shadow: 0 4px 20px rgba(136, 219, 189, 0.25);
+            box-shadow: 0 4px 20px var(--shadow-color);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
             z-index: 10;
             flex-shrink: 0;
         }
@@ -177,8 +199,8 @@
         .icon-circle:active { background-color: #f0f0f0; }
 
         .icon-green-bg {
-            background-color: rgba(110, 231, 183, 0.2);
-            color: #10B981;
+            background-color: rgba(139, 195, 74, 0.15);
+            color: var(--icon-green);
         }
 
         .icon-circle i { font-size: 20px; }
@@ -191,17 +213,17 @@
             padding: 0 15px;
             font-size: 16px;
             outline: none;
-            color: #333;
+            color: var(--text-main);
         }
-        #message-input::placeholder { color: #BBB; }
+        #message-input::placeholder { color: var(--text-gray); opacity: 0.6; }
 
         #status-indicator {
             font-size: 12px;
-            color: #666;
+            color: var(--text-gray);
             text-align: center;
             margin-bottom: 5px;
             height: 15px;
-            opacity: 0.7;
+            opacity: 0.8;
         }
 
         .narrative-action {
@@ -250,10 +272,11 @@
             left: 0;
             right: 0;
             height: 280px;
-            background: #f5f5f5;
+            background: linear-gradient(180deg, var(--bg-gradient-top) 0%, var(--bg-gradient-bottom) 100%);
             display: none;
             flex-direction: column;
             z-index: 50;
+            border-top: 1px solid var(--border-color);
         }
 
         .emoji-picker.show {
@@ -262,17 +285,18 @@
 
         .emoji-picker-header {
             padding: 10px 12px;
-            background: #f5f5f5;
+            background: transparent;
             flex-shrink: 0;
         }
 
         .emoji-picker-tab {
             display: inline-block;
             padding: 6px 14px;
-            background: #333;
+            background: var(--theme-primary);
             border-radius: 20px;
             font-size: 12px;
-            color: #fff;
+            color: var(--text-main);
+            font-weight: 500;
         }
 
         .emoji-picker-grid {
@@ -290,11 +314,11 @@
         }
 
         .emoji-picker-grid::-webkit-scrollbar-track {
-            background: #e0e0e0;
+            background: var(--border-color);
         }
 
         .emoji-picker-grid::-webkit-scrollbar-thumb {
-            background: #bbb;
+            background: var(--theme-primary-hover);
             border-radius: 2px;
         }
 
@@ -303,13 +327,16 @@
             flex-direction: column;
             align-items: center;
             padding: 6px 4px 8px 4px;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
         }
 
         .emoji-picker-item:active {
-            background: #e8e8e8;
+            background: var(--theme-primary);
+            transform: scale(0.95);
         }
 
         .emoji-picker-item-img {
@@ -321,7 +348,7 @@
 
         .emoji-picker-item-name {
             font-size: 10px;
-            color: #666;
+            color: var(--text-gray);
             text-align: center;
             margin-top: 4px;
             line-height: 1.2;
