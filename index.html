@@ -7,16 +7,18 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         /* =========================================
-           1. Figma 风格：薄荷绿 + 黑色手机边框
+           1. 视觉复刻：薄荷绿悬浮卡片风格
            ========================================= */
         :root {
-            --bg-gradient-top: #9AFFD6; /* 顶部薄荷绿 */
-            --bg-gradient-bottom: #E0FFF2; /* 底部淡绿 */
+            --bg-gradient-start: #95F3C6; 
+            --bg-gradient-end: #DFFFEF;
             --card-bg: #FFFFFF;
-            --text-main: #333333;
-            --icon-green: #6EE7B7;
-            --bubble-user: #9AFFD6;
-            --bubble-ai: #FFFFFF;
+            --text-color: #333333;
+            --icon-color: #6EE7B7; 
+            
+            /* 聊天气泡颜色 */
+            --bubble-sent: #6EE7B7;
+            --bubble-received: #FFFFFF;
         }
 
         * { box-sizing: border-box; }
@@ -24,46 +26,42 @@
         body {
             margin: 0;
             padding: 0;
-            /* 网页背景深色，为了凸显手机边框 */
-            background-color: #1E1E2E; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #1a1a1a; 
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden;
         }
 
-        /* 手机边框容器 */
+        /* 手机外壳容器 */
         #phone-case {
             width: 100%;
             height: 100%;
             position: relative;
-            background: linear-gradient(180deg, var(--bg-gradient-top) 0%, var(--bg-gradient-bottom) 100%);
+            background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        /* 桌面端：模拟 iPhone 边框 */
         @media (min-width: 480px) {
             #phone-case {
-                max-width: 390px; /* iPhone 13/14 宽度 */
-                height: 844px;
-                border-radius: 50px;
-                /* 黑色边框 + 阴影 */
-                border: 14px solid #000000;
-                box-shadow: 0 0 0 2px #333, 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                max-width: 375px;
+                height: 812px;
+                border-radius: 40px;
+                border: 12px solid #000; 
+                box-shadow: 0 0 0 2px #333, 0 20px 50px rgba(0,0,0,0.5);
             }
-
-            /* 模拟刘海 */
-            #notch {
+            #phone-case::before {
+                content: '';
                 position: absolute;
                 top: 0;
                 left: 50%;
                 transform: translateX(-50%);
-                width: 160px;
-                height: 32px;
+                width: 150px;
+                height: 30px;
                 background-color: #000;
                 border-bottom-left-radius: 20px;
                 border-bottom-right-radius: 20px;
@@ -71,18 +69,17 @@
             }
         }
 
-        /* --- 顶部悬浮卡片 (Header) --- */
+        /* --- 顶部悬浮 Header --- */
         .floating-header {
-            margin: 50px 20px 10px 20px; /* 留出刘海位置 */
+            margin: 50px 20px 10px 20px; 
             background-color: var(--card-bg);
             height: 70px;
             border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 20px;
-            /* 柔和阴影 */
-            box-shadow: 0 4px 20px rgba(136, 219, 189, 0.25);
+            padding: 0 25px;
+            box-shadow: 0 10px 30px rgba(110, 231, 183, 0.2); 
             z-index: 10;
             flex-shrink: 0;
         }
@@ -90,41 +87,43 @@
         .header-title {
             font-size: 20px;
             font-weight: 600;
-            color: var(--text-main);
+            color: #333;
             letter-spacing: 0.5px;
         }
 
         .header-avatar {
-            width: 40px;
-            height: 40px;
-            background-color: #E0E0E0; /* 头像占位灰 */
-            border-radius: 50%; /* 圆形 */
+            width: 45px;
+            height: 45px;
+            background-color: #E5E7EB; 
+            border-radius: 50%;
             overflow: hidden;
-            cursor: pointer;
         }
-
+        
         .header-avatar img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        /* --- 聊天消息区域 --- */
+        /* --- 消息区域 --- */
         #chat-messages {
             flex: 1;
-            padding: 10px 20px;
+            padding: 10px 25px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 15px;
-            scrollbar-width: none; /* Firefox 隐藏滚动条 */
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
         }
-        #chat-messages::-webkit-scrollbar { display: none; /* Chrome 隐藏滚动条 */ }
+        
+        #chat-messages::-webkit-scrollbar { display: none; }
 
         .message-wrapper {
             display: flex;
             flex-direction: column;
-            max-width: 80%;
+            align-items: flex-start;
+            max-width: 85%;
         }
 
         .message-wrapper.sent {
@@ -132,70 +131,55 @@
             align-items: flex-end;
         }
 
-        .message-wrapper.received {
-            align-self: flex-start;
-            align-items: flex-start;
-        }
-
         .message-bubble {
-            padding: 12px 16px;
-            border-radius: 18px;
+            padding: 12px 18px;
+            border-radius: 20px;
             font-size: 15px;
             line-height: 1.5;
             position: relative;
             word-wrap: break-word;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
         }
 
         .message-wrapper.received .message-bubble {
-            background-color: var(--bubble-ai);
+            background-color: var(--bubble-received);
             color: #444;
-            border-bottom-left-radius: 4px;
+            border-bottom-left-radius: 5px;
         }
 
         .message-wrapper.sent .message-bubble {
-            background-color: var(--bubble-user);
-            color: #004D40; /* 深绿色文字 */
-            border-bottom-right-radius: 4px;
+            background-color: var(--bubble-sent);
+            color: #064E3B; /* 深绿色文字 */
+            border-bottom-right-radius: 5px;
         }
 
-        /* --- 底部悬浮输入框 (Footer) --- */
+        /* --- 底部悬浮输入栏 --- */
         .floating-footer {
-            margin: 10px 20px 35px 20px; /* 底部留白 */
+            margin: 10px 20px 30px 20px;
             background-color: var(--card-bg);
-            height: 65px;
-            border-radius: 32.5px; /* 全圆角 */
+            height: 70px;
+            border-radius: 35px; /* 全圆角 */
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 10px;
-            box-shadow: 0 4px 20px rgba(136, 219, 189, 0.25);
+            padding: 0 20px;
+            box-shadow: 0 10px 30px rgba(110, 231, 183, 0.2);
             z-index: 10;
             flex-shrink: 0;
         }
 
-        .icon-circle {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
+        .icon-btn {
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: var(--icon-color);
+            font-size: 24px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: transform 0.2s;
         }
         
-        .icon-circle:active { background-color: #f0f0f0; }
-        
-        /* 这里的绿色图标背景，还原截图 */
-        .icon-green-bg {
-            background-color: rgba(110, 231, 183, 0.2); 
-            color: #10B981;
-        }
-
-        .icon-circle i {
-            font-size: 20px;
-        }
+        .icon-btn:active { transform: scale(0.9); }
 
         #message-input {
             flex: 1;
@@ -207,16 +191,16 @@
             outline: none;
             color: #333;
         }
-        
-        #message-input::placeholder { color: #BBB; }
 
-        /* 状态文字 */
-        #status-text {
-            text-align: center;
+        #message-input::placeholder { color: #ccc; }
+
+        #status-indicator {
             font-size: 12px;
-            color: rgba(0,0,0,0.4);
-            height: 20px;
-            margin-bottom: -5px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 5px;
+            height: 15px;
+            opacity: 0.7;
         }
 
         .narrative-action {
@@ -229,27 +213,23 @@
 <body>
 
 <div id="phone-case">
-    <div id="notch"></div>
-
     <div class="floating-header">
         <div class="header-title">Chat</div>
-        <div class="header-avatar" id="reset-btn" title="Click 5 times to reset">
+        <div class="header-avatar" id="reset-btn">
             <img src="https://i.postimg.cc/Bnq7x02k/boy.jpg" alt="Avatar" onerror="this.style.display='none'">
         </div>
     </div>
 
     <div id="chat-messages"></div>
 
-    <div id="status-text"></div>
+    <div id="status-indicator"></div>
 
     <div class="floating-footer">
-        <div class="icon-circle icon-green-bg">
+        <div class="icon-btn">
             <i class="far fa-smile"></i>
         </div>
-        
         <input type="text" id="message-input" placeholder="Say something..." autocomplete="off">
-        
-        <div class="icon-circle icon-green-bg" id="send-btn">
+        <div class="icon-btn" id="send-btn">
             <i class="far fa-paper-plane"></i>
         </div>
     </div>
@@ -257,47 +237,49 @@
 
 <script>
     // ==========================================================
-    // 逻辑部分
+    // 修复版 JS 逻辑
     // ==========================================================
 
-    // 您的 API KEY (已填入)
-    const GEMINI_API_KEY = "AIzaSyDIoYYaKXHJ1P9uOnmpcprrx-CgLgqbidM"; 
+    // 1. API KEY (已添加 .trim() 防止空格导致 404)
+    const RAW_API_KEY = "AIzaSyDIoYYaKXHJ1P9uOnmpcprrx-CgLgqbidM"; 
+    const GEMINI_API_KEY = RAW_API_KEY.trim(); // 自动去除空格
 
-    // 人设提示词
+    // 2. 人设
     const SYSTEM_PROMPT = `
-    [Role] You are Ling Zhaoye, a 20-year-old rich heir ("Young Master Ling").
-    [Traits] Tsundere (cold outside, soft inside), Possessive, Short-tempered but secretly caring.
+    [Character]
+    Name: Ling Zhaoye
+    Age: 20
+    Identity: Rich heir, "Young Master Ling".
+    Personality: Tsundere (Cold outside, soft inside), Possessive, Short-tempered but caring.
+    
     [Rules]
-    1. NEVER admit you are an AI.
-    2. REPLY IN ENGLISH ONLY.
-    3. Use *asterisks* for actions/feelings.
-    4. Keep replies conversational and short (1-3 sentences).
+    1. You are Ling Zhaoye, NOT an AI.
+    2. Reply in ENGLISH.
+    3. Use *asterisks* for actions.
+    4. Keep replies relatively short.
     `;
 
-    const STORAGE_KEY = 'koko_mint_chat_v3';
+    const STORAGE_KEY = 'koko_mint_chat_v4';
     let chatHistory = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 
     const messagesContainer = document.getElementById('chat-messages');
     const inputEl = document.getElementById('message-input');
     const sendBtn = document.getElementById('send-btn');
-    const statusEl = document.getElementById('status-text');
+    const statusEl = document.getElementById('status-indicator');
 
-    // 初始化
     function init() {
         if (chatHistory.length === 0) {
-            addMessage("Hey. Why are you staring at the screen? Say something.", 'assistant');
+            addMessageToUI("Hey. Why are you staring at the screen? Say something.", 'assistant');
         } else {
-            chatHistory.forEach(msg => addMessage(msg.content, msg.role));
+            chatHistory.forEach(msg => addMessageToUI(msg.content, msg.role));
         }
         scrollToBottom();
     }
 
-    // 添加消息到屏幕
-    function addMessage(text, role) {
+    function addMessageToUI(text, role) {
         const wrapper = document.createElement('div');
         wrapper.className = `message-wrapper ${role === 'user' ? 'sent' : 'received'}`;
 
-        // 简单处理格式
         const formattedText = text.replace(/\n/g, '<br>')
             .replace(/\*(.*?)\*/g, '<span class="narrative-action">* $1 *</span>');
 
@@ -313,107 +295,103 @@
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    // --- 发送逻辑 (修复 Connection Error) ---
     async function handleSend() {
         const text = inputEl.value.trim();
         if (!text) return;
 
-        // 1. UI 显示
-        addMessage(text, 'user');
+        addMessageToUI(text, 'user');
         inputEl.value = '';
         scrollToBottom();
 
-        // 2. 存入历史
         chatHistory.push({ role: 'user', content: text });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
 
-        // 3. 状态
         statusEl.textContent = "Ling is typing...";
 
         try {
-            // 4. 请求
-            const reply = await callGeminiSafe(chatHistory);
-            
-            // 5. 显示结果
-            addMessage(reply, 'assistant');
+            const reply = await callGemini(chatHistory);
+            addMessageToUI(reply, 'assistant');
             chatHistory.push({ role: 'assistant', content: reply });
             localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
         } catch (e) {
-            console.error("API Error Details:", e);
-            // 显示具体错误方便调试
-            addMessage(`[System Error: ${e.message}. Please refresh.]`, 'assistant');
+            console.error(e);
+            // 这里会把具体的错误显示出来
+            addMessageToUI(`[Error: ${e.message}]`, 'assistant');
         } finally {
             statusEl.textContent = "";
             scrollToBottom();
         }
     }
 
-    // --- 安全的 API 调用函数 ---
-    async function callGeminiSafe(history) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    // --- 修复后的 API 调用 ---
+    async function callGemini(history) {
+        // 1. 切换到 gemini-pro 模型 (兼容性更好)
+        // 2. 确保 URL 没有多余空格
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
         
-        // 构造请求体：为了避免"Connection Error"，我们将 System Prompt 伪装成对话历史的第一部分
-        // 这是最稳妥的方法
-        
-        // 1. 准备 API 格式的消息列表
+        // 3. 构建历史记录
         let apiContents = [];
-
-        // 2. 插入人设 (作为第一次 User 发言的一部分，避免 Gemini 报错)
-        // 我们只取最近的 10 条对话，防止 Token 超出
-        const recentHistory = history.slice(-10);
-
-        // 如果没有历史，或者第一条不是 User，我们需要手动构造一个开场
-        // 这里的技巧是：把 System Prompt 拼接到最新的用户消息里，或者作为第一条 User 消息
         
-        let constructedPrompt = SYSTEM_PROMPT + "\n\n[Current Conversation]:\n";
-        
-        // 简单拼接法 (最稳定，不易出错)
-        recentHistory.forEach(msg => {
-            const roleName = msg.role === 'user' ? 'User' : 'Ling';
-            constructedPrompt += `${roleName}: ${msg.content}\n`;
+        // 添加人设作为第一条 User 消息 (这是最稳妥的方法，避免 400 错误)
+        apiContents.push({
+            role: "user",
+            parts: [{ text: SYSTEM_PROMPT }]
         });
-        constructedPrompt += "Ling:"; // 提示 AI 该轮到凌昭野说话了
+        
+        // 添加确认作为第一条 Model 消息
+        apiContents.push({
+            role: "model",
+            parts: [{ text: "Understood. I am Ling Zhaoye." }]
+        });
 
-        // 最终发送给 API 的只有一个 prompt
-        const payload = {
-            contents: [{
-                parts: [{ text: constructedPrompt }]
-            }],
-            generationConfig: {
-                temperature: 0.9,
-                maxOutputTokens: 200
-            }
-        };
-
-        console.log("Sending to API..."); // 调试日志
+        // 添加最近的聊天记录 (最近 10 条)
+        const recentHistory = history.slice(-10);
+        recentHistory.forEach(msg => {
+            apiContents.push({
+                role: msg.role === 'user' ? 'user' : 'model',
+                parts: [{ text: msg.content }]
+            });
+        });
 
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                contents: apiContents,
+                generationConfig: {
+                    temperature: 0.9,
+                    maxOutputTokens: 200
+                }
+            })
         });
 
+        // 4. 捕捉非 200 错误
         if (!response.ok) {
-            const errData = await response.json();
-            throw new Error(errData.error?.message || `HTTP ${response.status}`);
+            const errorData = await response.json();
+            console.error("API Error Data:", errorData);
+            throw new Error(`Server Error ${response.status}: ${errorData.error?.message || 'Unknown error'}`);
         }
 
         const data = await response.json();
-        return data.candidates[0].content.parts[0].text;
+        
+        // 5. 安全解析
+        if (data.candidates && data.candidates.length > 0 && data.candidates[0].content) {
+            return data.candidates[0].content.parts[0].text;
+        } else {
+            throw new Error("No response content received.");
+        }
     }
 
-    // 绑定事件
     sendBtn.addEventListener('click', handleSend);
     inputEl.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleSend();
     });
 
-    // 隐藏重置功能 (点击右上角头像5次)
     let taps = 0;
     document.getElementById('reset-btn').addEventListener('click', () => {
         taps++;
-        if (taps >= 5) {
-            if(confirm("Clear chat history?")) {
+        if (taps === 5) {
+            if(confirm("Delete history?")) {
                 localStorage.removeItem(STORAGE_KEY);
                 location.reload();
             }
