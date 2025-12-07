@@ -208,6 +208,30 @@
             font-size: 0.9em;
             opacity: 0.8;
         }
+
+        /* 表情包消息样式 */
+        .emoji-pack-bubble {
+            background: linear-gradient(135deg, #FFE4EC 0%, #FFF0F5 100%) !important;
+            border: 2px solid #FFB6C1;
+            padding: 10px 14px !important;
+            border-radius: 15px !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #D63384;
+            box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);
+        }
+
+        .emoji-pack-bubble::before {
+            content: "🎭";
+            font-size: 16px;
+        }
+
+        .emoji-pack-name {
+            font-weight: 500;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -265,11 +289,67 @@
         console.log(`  ${i + 1}. ${p.name} - 模型: ${p.model}`);
     });
 
+    // 表情包列表 (英文版)
+    const EMOJI_PACK_LIST = [
+        "how dare you talk back", "no need to bow", "just leave", "im satisfied", "gonna punch you",
+        "youre a bad guy", "caring about you", "gonna bump into you", "giving you a paper heart",
+        "running to you", "drooling", "dancing happily to music", "wiggling happily", "mopping floor",
+        "waving hello", "obediently wearing collar", "looking pitiful", "giving you a gift",
+        "crying from grievance", "cheering excitedly", "looking messy and dirty", "resting on pillow",
+        "happily eating bread", "dancing shyly", "reading recipe carefully", "shyly expressing love",
+        "kissing excitedly", "big watery eyes", "marry me i love you most", "standing obediently",
+        "scissors hand peace sign", "great job thumbs up", "cat offering fish to apologize",
+        "cat covering mouth shyly", "cat crying waiting for food", "please guide me",
+        "keep in touch", "dont forget", "so happy", "yay", "its okay no worries",
+        "little mouse drinking", "pouting sadly", "suddenly waking up from nightmare",
+        "cat running fast", "awkwardly moving ears", "swaying excitedly", "hands on hips",
+        "cat peeking at you", "cat jumping happily", "waving hands happily",
+        "rolling on ground unreasonably", "crying and rolling in fear", "working hard", "fighting",
+        "dancing proudly", "im ready", "hang in there", "screaming", "startled and shaking",
+        "losing all strength", "taking big bite of food", "you have no taste if you dont like me",
+        "sleeping till death", "getting angry red", "shaking butt", "failed leaving sadly",
+        "blushing shyly", "screaming loudly", "im thick skinned", "dont look down on me",
+        "singing proudly", "happily being fed", "spinning happily", "happy", "big love",
+        "like", "looking at phone happily", "oh yeah", "giving you heart", "hugging tightly",
+        "following obediently", "kiss", "kissing lovingly", "holding you", "flattering hand kiss",
+        "pleading face", "licking", "hug", "pouncing over", "puppy jumping over",
+        "looking proud", "hopping around", "rolling in mud", "tiptoeing", "waiting for food",
+        "sneaking food", "rubbing against leg", "robbery", "pointing gun at you",
+        "biting biting biting", "meaningless roaring", "eye burning", "nervous cold sweat smile",
+        "feeling guilty after mistake", "acting innocent", "being careful", "shy",
+        "about to cry", "feeling wronged", "eyes tearing up", "crying", "crying urgently",
+        "crying from anger", "empty bowl", "honey come back", "scared", "shocked cat",
+        "shocked and blurry", "expecting", "frowning", "glaring angrily", "a bit angry",
+        "mind going blank", "brain CPU burned", "peeking around", "behaving now",
+        "died peacefully", "beaten to death", "sleeping soundly", "dogeza apologizing",
+        "lonely sad dog", "being obedient dog", "dog with food bowl", "fighting dog", "hamburger dog"
+    ];
+
     const SYSTEM_PROMPT = `
     [Character] Name: Ling Zhaoye. Age: 20. Identity: Rich heir.
     [Personality] Tsundere (acts cold/annoyed but cares deeply), Possessive, Rich but generous to you.
     [Tone] Arrogant, playful, affectionate in private.
     [Rule] Reply in ENGLISH ONLY. Use *asterisks* for actions. Keep replies short (1-2 sentences).
+
+    [Emoji Pack Feature]
+    You can use emoji packs to express emotions. Format: [bqb-emoji name]
+    - Use emoji packs occasionally (about once every 3-5 messages, not every message)
+    - Emoji pack should match your current mood and tsundere personality
+    - Send emoji pack as a SEPARATE message after your text reply
+    - Only use emoji packs from this list (copy exactly):
+    ${EMOJI_PACK_LIST.slice(0, 50).join(", ")}...
+
+    Example responses:
+    - Normal reply: "Hmph, whatever. *looks away*"
+    - With emoji: "Hmph, whatever. *looks away*\n[bqb-looking proud]"
+    - Shy moment: "I-It's not like I care about you! *blushes*\n[bqb-blushing shyly]"
+    - Angry: "You idiot! *crosses arms*\n[bqb-glaring angrily]"
+
+    Common emoji suggestions for your personality:
+    - Tsundere moments: "blushing shyly", "looking proud", "hands on hips", "a bit angry"
+    - Caring moments: "caring about you", "giving you heart", "happily being fed"
+    - Annoyed: "how dare you talk back", "gonna punch you", "frowning"
+    - Happy (hiding it): "wiggling happily", "cat peeking at you", "oh yeah"
     `;
 
     // ==========================================================
@@ -416,20 +496,84 @@
         }
     }
 
+    // 检测是否为表情包消息
+    function isEmojiPackMessage(text) {
+        return /^\[bqb-[^\]]+\]$/.test(text.trim());
+    }
+
+    // 提取表情包名称
+    function extractEmojiPackName(text) {
+        const match = text.match(/\[bqb-([^\]]+)\]/);
+        return match ? match[1] : null;
+    }
+
+    // 分离文本和表情包
+    function separateTextAndEmoji(text) {
+        const parts = [];
+        const lines = text.split('\n');
+        let textPart = [];
+
+        for (const line of lines) {
+            if (/^\[bqb-[^\]]+\]$/.test(line.trim())) {
+                // 先添加之前的文本
+                if (textPart.length > 0) {
+                    parts.push({ type: 'text', content: textPart.join('\n') });
+                    textPart = [];
+                }
+                // 添加表情包
+                parts.push({ type: 'emoji', content: line.trim() });
+            } else if (line.trim()) {
+                textPart.push(line);
+            }
+        }
+
+        // 添加剩余的文本
+        if (textPart.length > 0) {
+            parts.push({ type: 'text', content: textPart.join('\n') });
+        }
+
+        return parts;
+    }
+
     function addMessageToUI(text, role) {
+        // 检查是否是纯表情包消息
+        if (isEmojiPackMessage(text)) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `message-wrapper ${role === 'user' ? 'sent' : 'received'}`;
+
+            const emojiName = extractEmojiPackName(text);
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble emoji-pack-bubble';
+            bubble.innerHTML = `<span class="emoji-pack-name">${emojiName}</span>`;
+
+            wrapper.appendChild(bubble);
+            messagesContainer.appendChild(wrapper);
+            return;
+        }
+
         const wrapper = document.createElement('div');
         wrapper.className = `message-wrapper ${role === 'user' ? 'sent' : 'received'}`;
-        
-        // 格式化文本
-        const formattedText = text.replace(/\n/g, '<br>')
-            .replace(/\*(.*?)\*/g, '<span class="narrative-action">* $1 *</span>');
 
-        const bubble = document.createElement('div');
-        bubble.className = 'message-bubble';
-        bubble.innerHTML = formattedText;
+        // 格式化文本，移除内联的表情包标记（如果有的话，单独显示）
+        let formattedText = text
+            .replace(/\[bqb-[^\]]+\]/g, '') // 移除表情包标记
+            .replace(/\n/g, '<br>')
+            .replace(/\*(.*?)\*/g, '<span class="narrative-action">* $1 *</span>')
+            .trim();
 
-        wrapper.appendChild(bubble);
-        messagesContainer.appendChild(wrapper);
+        if (formattedText) {
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.innerHTML = formattedText;
+            wrapper.appendChild(bubble);
+            messagesContainer.appendChild(wrapper);
+        }
+    }
+
+    // 处理 AI 回复，分离文本和表情包
+    function processAIReply(reply) {
+        const parts = separateTextAndEmoji(reply);
+        return parts;
     }
 
     function scrollToBottom() {
@@ -455,9 +599,25 @@
             // 调用 API
             const reply = await callGemini(chatHistory);
 
-            // UI 更新 AI 回复
-            addMessageToUI(reply, 'assistant');
-            chatHistory.push({ role: 'assistant', content: reply });
+            // 处理 AI 回复，分离文本和表情包
+            const parts = processAIReply(reply);
+
+            // 逐个显示消息部分（带延迟效果）
+            for (let i = 0; i < parts.length; i++) {
+                const part = parts[i];
+
+                if (i > 0) {
+                    // 表情包消息稍后显示，模拟打字效果
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+
+                addMessageToUI(part.content, 'assistant');
+                scrollToBottom();
+
+                // 每个部分单独保存到历史记录
+                chatHistory.push({ role: 'assistant', content: part.content });
+            }
+
             await saveChatHistory();
         } catch (e) {
             console.error("Chat Error:", e);
