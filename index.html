@@ -272,8 +272,25 @@
     [Rule] Reply in ENGLISH ONLY. Use *asterisks* for actions. Keep replies short (1-2 sentences).
     `;
 
+    // ==========================================================
+    // MongoDB 配置
+    // ==========================================================
+    const MONGODB_CONFIG = {
+        enabled: true,  // 设为 true 启用 MongoDB，false 使用 localStorage
+        connectionString: "mongodb+srv://jessicacym94_db_user:k79WEWGnMey4RtN5@cluster0.4q0ji8h.mongodb.net/?appName=Cluster0",
+        database: "chat_app",
+        collection: "chat_history",
+        // 用户 ID（可以改为登录系统）
+        userId: "user_" + (localStorage.getItem('user_id') || Math.random().toString(36).substr(2, 9))
+    };
+
+    // 保存用户ID到localStorage
+    if (!localStorage.getItem('user_id')) {
+        localStorage.setItem('user_id', MONGODB_CONFIG.userId);
+    }
+
     const STORAGE_KEY = 'koko_mint_chat_v5';
-    let chatHistory = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    let chatHistory = [];
 
     const messagesContainer = document.getElementById('chat-messages');
     const inputEl = document.getElementById('message-input');
@@ -284,12 +301,99 @@
         // 检查可用模型
         await checkAvailableModels();
 
+        // 加载聊天历史
+        await loadChatHistory();
+
         if (chatHistory.length === 0) {
             addMessageToUI("Hey. Why are you staring at the screen? Say something.", 'assistant');
         } else {
             chatHistory.forEach(msg => addMessageToUI(msg.content, msg.role));
         }
         scrollToBottom();
+    }
+
+    // ==========================================================
+    // 数据库操作函数
+    // ==========================================================
+
+    // 加载聊天历史
+    async function loadChatHistory() {
+        if (MONGODB_CONFIG.enabled) {
+            console.log("📂 从 MongoDB 加载聊天历史...");
+            try {
+                const history = await fetchFromMongoDB();
+                if (history && Array.isArray(history.messages)) {
+                    chatHistory = history.messages;
+                    console.log(`✓ 已加载 ${chatHistory.length} 条消息`);
+                } else {
+                    chatHistory = [];
+                    console.log("ℹ️ MongoDB 中没有历史记录，使用空数组");
+                }
+            } catch (error) {
+                console.warn("❌ 从 MongoDB 加载失败，使用 localStorage:", error.message);
+                chatHistory = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            }
+        } else {
+            console.log("📂 从 localStorage 加载聊天历史...");
+            chatHistory = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        }
+    }
+
+    // 保存聊天历史
+    async function saveChatHistory() {
+        if (MONGODB_CONFIG.enabled) {
+            try {
+                await saveToMongoDB(chatHistory);
+                console.log("✓ 已保存到 MongoDB");
+            } catch (error) {
+                console.warn("❌ 保存到 MongoDB 失败，使用 localStorage:", error.message);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
+            }
+        } else {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
+        }
+    }
+
+    // 从 MongoDB 读取数据
+    async function fetchFromMongoDB() {
+        // 使用 Vercel 部署的后端 API
+        const apiUrl = "/api/chat/get";
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: MONGODB_CONFIG.userId
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        return await response.json();
+    }
+
+    // 保存到 MongoDB
+    async function saveToMongoDB(messages) {
+        // 使用 Vercel 部署的后端 API
+        const apiUrl = "/api/chat/save";
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: MONGODB_CONFIG.userId,
+                messages: messages,
+                updatedAt: new Date().toISOString()
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        return await response.json();
     }
 
     // 检查并列出可用的模型
@@ -343,18 +447,18 @@
 
         // 历史保存
         chatHistory.push({ role: 'user', content: text });
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
+        await saveChatHistory();
 
         statusEl.textContent = "Ling is typing...";
 
         try {
             // 调用 API
             const reply = await callGemini(chatHistory);
-            
+
             // UI 更新 AI 回复
             addMessageToUI(reply, 'assistant');
             chatHistory.push({ role: 'assistant', content: reply });
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
+            await saveChatHistory();
         } catch (e) {
             console.error("Chat Error:", e);
             addMessageToUI(`[Error: ${e.message}. Please try again.]`, 'assistant');
