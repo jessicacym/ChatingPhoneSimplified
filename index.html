@@ -626,11 +626,19 @@
         for (let i = 0; i < API_PROVIDERS.length; i++) {
             const provider = API_PROVIDERS[i];
             try {
-                const url = `${provider.baseUrl}/models?key=${provider.apiKey}`;
-                const response = await fetch(url);
+                let url, headers;
+                if (provider.type === 'openai') {
+                    // OpenAI 兼容格式使用 Bearer Token
+                    url = `${provider.baseUrl}/models`;
+                    headers = { 'Authorization': `Bearer ${provider.apiKey}` };
+                } else {
+                    // Gemini 官方格式使用 URL 参数
+                    url = `${provider.baseUrl}/models?key=${provider.apiKey}`;
+                    headers = {};
+                }
+                const response = await fetch(url, { headers });
                 if (response.ok) {
                     console.log(`✓ ${provider.name} - 可用`);
-                    return; // 找到可用的就退出
                 } else {
                     console.warn(`✗ ${provider.name} - 状态 ${response.status}`);
                 }
