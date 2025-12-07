@@ -241,6 +241,135 @@
         .emoji-pack-name::before {
             content: "🎭 ";
         }
+
+        /* 表情包选择器样式 */
+        .emoji-picker-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            top: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .emoji-picker-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .emoji-picker {
+            position: absolute;
+            bottom: 110px;
+            left: 15px;
+            right: 15px;
+            height: 33%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 101;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .emoji-picker.show {
+            transform: translateY(0);
+        }
+
+        .emoji-picker-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .emoji-picker-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .emoji-picker-close {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #666;
+        }
+
+        .emoji-picker-close:hover {
+            background: #e0e0e0;
+        }
+
+        .emoji-picker-grid {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            scrollbar-width: thin;
+        }
+
+        .emoji-picker-grid::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .emoji-picker-grid::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 2px;
+        }
+
+        .emoji-picker-item {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            background: #f8f8f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            border: 2px solid transparent;
+        }
+
+        .emoji-picker-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            border-color: #9AFFD6;
+        }
+
+        .emoji-picker-item:active {
+            transform: scale(0.95);
+        }
+
+        .emoji-picker-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .emoji-picker-item .emoji-placeholder {
+            font-size: 10px;
+            color: #999;
+            text-align: center;
+            padding: 4px;
+            word-break: break-word;
+        }
     </style>
 </head>
 <body>
@@ -260,12 +389,24 @@
     <div id="status-indicator"></div>
 
     <div class="floating-footer">
-        <div class="icon-circle icon-green-bg">
+        <div class="icon-circle icon-green-bg" id="emoji-btn">
             <i class="far fa-smile"></i>
         </div>
         <input type="text" id="message-input" placeholder="Say something..." autocomplete="off">
         <div class="icon-circle icon-green-bg" id="send-btn">
             <i class="far fa-paper-plane"></i>
+        </div>
+    </div>
+
+    <!-- 表情包选择器 -->
+    <div class="emoji-picker-overlay" id="emoji-overlay"></div>
+    <div class="emoji-picker" id="emoji-picker">
+        <div class="emoji-picker-header">
+            <span class="emoji-picker-title">Stickers</span>
+            <button class="emoji-picker-close" id="emoji-close">&times;</button>
+        </div>
+        <div class="emoji-picker-grid" id="emoji-grid">
+            <!-- 表情包将通过JS动态填充 -->
         </div>
     </div>
 </div>
@@ -948,6 +1089,100 @@
             taps = 0;
         }
     });
+
+    // ==========================================================
+    // 表情包选择器功能
+    // ==========================================================
+    const emojiBtn = document.getElementById('emoji-btn');
+    const emojiPicker = document.getElementById('emoji-picker');
+    const emojiOverlay = document.getElementById('emoji-overlay');
+    const emojiClose = document.getElementById('emoji-close');
+    const emojiGrid = document.getElementById('emoji-grid');
+
+    // 初始化表情包选择器
+    function initEmojiPicker() {
+        // 清空并填充表情包网格
+        emojiGrid.innerHTML = '';
+
+        Object.entries(EMOJI_PACK_MAP).forEach(([name, url]) => {
+            const item = document.createElement('div');
+            item.className = 'emoji-picker-item';
+            item.title = name;
+            item.innerHTML = `<img src="${url}" alt="${name}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'emoji-placeholder\\'>${name}</span>';">`;
+
+            // 点击发送表情包
+            item.addEventListener('click', () => {
+                sendEmojiPack(name);
+                closeEmojiPicker();
+            });
+
+            emojiGrid.appendChild(item);
+        });
+    }
+
+    // 打开表情包选择器
+    function openEmojiPicker() {
+        emojiOverlay.classList.add('show');
+        emojiPicker.classList.add('show');
+    }
+
+    // 关闭表情包选择器
+    function closeEmojiPicker() {
+        emojiOverlay.classList.remove('show');
+        emojiPicker.classList.remove('show');
+    }
+
+    // 发送表情包消息
+    async function sendEmojiPack(emojiName) {
+        const emojiMessage = `[bqb-${emojiName}]`;
+
+        // UI 更新 - 显示用户发送的表情包
+        addMessageToUI(emojiMessage, 'user');
+        scrollToBottom();
+
+        // 保存到历史记录
+        chatHistory.push({ role: 'user', content: emojiMessage });
+        await saveChatHistory();
+
+        statusEl.textContent = "Ling is typing...";
+
+        try {
+            // 调用 API 获取回复
+            const reply = await callGemini(chatHistory);
+
+            // 处理 AI 回复
+            const parts = processAIReply(reply);
+
+            // 逐个显示消息部分
+            for (let i = 0; i < parts.length; i++) {
+                const part = parts[i];
+
+                if (i > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+
+                addMessageToUI(part.content, 'assistant');
+                scrollToBottom();
+                chatHistory.push({ role: 'assistant', content: part.content });
+            }
+
+            await saveChatHistory();
+        } catch (e) {
+            console.error("Chat Error:", e);
+            addMessageToUI(`[Error: ${e.message}. Please try again.]`, 'assistant');
+        } finally {
+            statusEl.textContent = "";
+            scrollToBottom();
+        }
+    }
+
+    // 事件监听器
+    emojiBtn.addEventListener('click', openEmojiPicker);
+    emojiClose.addEventListener('click', closeEmojiPicker);
+    emojiOverlay.addEventListener('click', closeEmojiPicker);
+
+    // 初始化表情包选择器
+    initEmojiPicker();
 
     init();
 </script>
