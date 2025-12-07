@@ -6,315 +6,354 @@
     <title>Chat with Ling</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* =========================================
+           1. 视觉复刻：薄荷绿悬浮卡片风格
+           ========================================= */
         :root {
-            --primary-color: #007AFF;
-            --bg-color: #f2f2f7;
-            --bubble-sent: #007AFF;
-            --bubble-received: #e9e9eb;
-            --text-sent: #fff;
-            --text-received: #000;
+            /* 截图中的薄荷绿渐变 */
+            --bg-gradient-start: #95F3C6; 
+            --bg-gradient-end: #DFFFEF;
+            --card-bg: #FFFFFF;
+            --text-color: #333333;
+            --icon-color: #6EE7B7; /* 按钮的绿色 */
+            
+            /* 聊天气泡颜色 */
+            --bubble-sent: #6EE7B7;
+            --bubble-received: #FFFFFF;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
+            background-color: #1a1a1a; /* 网页背景深色，突出手机 */
             height: 100vh;
             display: flex;
             justify-content: center;
+            align-items: center;
             overflow: hidden;
         }
 
-        #app-container {
+        /* 手机外壳容器 */
+        #phone-case {
             width: 100%;
-            max-width: 450px;
             height: 100%;
-            background-color: #fff;
             position: relative;
+            background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             display: flex;
             flex-direction: column;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
 
-        /* 顶部栏 */
-        .chat-header {
-            height: 60px;
-            background-color: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid #e0e0e0;
+        /* 在桌面端模拟手机边框 */
+        @media (min-width: 480px) {
+            #phone-case {
+                max-width: 375px;
+                height: 812px;
+                border-radius: 40px;
+                border: 12px solid #000; /* 黑色边框 */
+                box-shadow: 0 0 0 2px #333, 0 20px 50px rgba(0,0,0,0.5);
+            }
+            
+            /* 模拟刘海 */
+            #phone-case::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 150px;
+                height: 30px;
+                background-color: #000;
+                border-bottom-left-radius: 20px;
+                border-bottom-right-radius: 20px;
+                z-index: 1000;
+            }
+        }
+
+        /* --- 顶部悬浮 Header --- */
+        .floating-header {
+            margin: 50px 20px 10px 20px; /* 留出刘海位置 */
+            background-color: var(--card-bg);
+            height: 70px;
+            border-radius: 20px;
             display: flex;
             align-items: center;
-            padding: 0 15px;
+            justify-content: space-between;
+            padding: 0 25px;
+            box-shadow: 0 10px 30px rgba(110, 231, 183, 0.2); /* 淡淡的绿色阴影 */
             z-index: 10;
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            flex-shrink: 0;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            letter-spacing: 0.5px;
         }
 
         .header-avatar {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
+            background-color: #E5E7EB; /* 灰色占位符 */
             border-radius: 50%;
+            overflow: hidden;
+        }
+        
+        .header-avatar img {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            margin-right: 10px;
         }
 
-        .header-info {
-            flex: 1;
-        }
-
-        .header-name {
-            font-weight: 600;
-            font-size: 17px;
-        }
-
-        .header-status {
-            font-size: 12px;
-            color: #8e8e93;
-        }
-
-        /* 聊天区域 */
+        /* --- 消息区域 --- */
         #chat-messages {
             flex: 1;
-            padding: 70px 15px 80px 15px;
+            padding: 10px 25px;
             overflow-y: auto;
-            background-color: var(--bg-color);
             display: flex;
             flex-direction: column;
             gap: 15px;
+            /* 隐藏滚动条但保留功能 */
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
+        }
+        
+        #chat-messages::-webkit-scrollbar { 
+            display: none; 
         }
 
         .message-wrapper {
             display: flex;
-            align-items: flex-end;
-            margin-bottom: 5px;
+            flex-direction: column;
+            align-items: flex-start;
+            max-width: 85%;
         }
 
         .message-wrapper.sent {
-            justify-content: flex-end;
+            align-self: flex-end;
+            align-items: flex-end;
         }
 
         .message-bubble {
-            max-width: 70%;
-            padding: 10px 14px;
-            border-radius: 18px;
+            padding: 12px 18px;
+            border-radius: 20px;
             font-size: 15px;
-            line-height: 1.4;
+            line-height: 1.5;
             position: relative;
             word-wrap: break-word;
-        }
-
-        .message-wrapper.sent .message-bubble {
-            background-color: var(--primary-color);
-            color: var(--text-sent);
-            border-bottom-right-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
         }
 
         .message-wrapper.received .message-bubble {
             background-color: var(--bubble-received);
-            color: var(--text-received);
-            border-bottom-left-radius: 4px;
-        }
-        
-        .avatar-small {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-right: 8px;
-            object-fit: cover;
+            color: #444;
+            border-bottom-left-radius: 5px;
         }
 
-        /* 输入区域 */
-        .input-area {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: #fff;
-            padding: 10px 15px;
-            border-top: 1px solid #e0e0e0;
+        .message-wrapper.sent .message-bubble {
+            background-color: var(--bubble-sent);
+            color: #064E3B; /* 深绿色文字 */
+            border-bottom-right-radius: 5px;
+        }
+
+        /* --- 底部悬浮输入栏 --- */
+        .floating-footer {
+            margin: 10px 20px 30px 20px;
+            background-color: var(--card-bg);
+            height: 70px;
+            border-radius: 35px; /* 全圆角 */
             display: flex;
-            align-items: flex-end;
-            gap: 10px;
-            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 10px 30px rgba(110, 231, 183, 0.2);
+            z-index: 10;
+            flex-shrink: 0;
         }
 
-        #message-input {
-            flex: 1;
-            border: 1px solid #e0e0e0;
-            border-radius: 20px;
-            padding: 10px 15px;
-            font-size: 15px;
-            max-height: 100px;
-            resize: none;
-            outline: none;
-            background-color: #f9f9f9;
-            font-family: inherit;
-        }
-
-        #send-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
+        .icon-btn {
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: var(--icon-color);
+            font-size: 24px;
             cursor: pointer;
-            transition: opacity 0.2s;
+            transition: transform 0.2s;
+        }
+        
+        .icon-btn:active { transform: scale(0.9); }
+
+        #message-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            height: 100%;
+            padding: 0 15px;
+            font-size: 16px;
+            outline: none;
+            color: #333;
         }
 
-        #send-btn:active {
-            opacity: 0.8;
+        #message-input::placeholder {
+            color: #ccc;
+        }
+
+        /* 状态提示 */
+        #status-indicator {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 5px;
+            height: 15px;
+            opacity: 0.7;
         }
 
         .narrative-action {
             font-style: italic;
-            color: #666;
             font-size: 0.9em;
+            opacity: 0.8;
         }
     </style>
 </head>
 <body>
 
-<div id="app-container">
-    <div class="chat-header">
-        <img src="https://i.postimg.cc/Bnq7x02k/boy.jpg" alt="Avatar" class="header-avatar">
-        <div class="header-info">
-            <div class="header-name">Ling Zhaoye</div>
-            <div class="header-status" id="chat-status">Online</div>
+<div id="phone-case">
+    <div class="floating-header">
+        <div class="header-title">Chat</div>
+        <div class="header-avatar" id="reset-btn">
+            <img src="https://i.postimg.cc/Bnq7x02k/boy.jpg" alt="Avatar">
         </div>
     </div>
 
-    <div id="chat-messages"></div>
+    <div id="chat-messages">
+        </div>
 
-    <div class="input-area">
-        <textarea id="message-input" rows="1" placeholder="Message..."></textarea>
-        <button id="send-btn"><i class="fas fa-paper-plane"></i></button>
+    <div id="status-indicator"></div>
+
+    <div class="floating-footer">
+        <div class="icon-btn">
+            <i class="far fa-smile"></i>
+        </div>
+        <input type="text" id="message-input" placeholder="Say something..." autocomplete="off">
+        <div class="icon-btn" id="send-btn">
+            <i class="far fa-paper-plane"></i>
+        </div>
     </div>
 </div>
 
 <script>
     // ==========================================================
-    // 配置区域
+    // 逻辑部分：Gemini API + 聊天控制
     // ==========================================================
-    
-    // 你的 API KEY
+
+    // 您的 API KEY
     const GEMINI_API_KEY = "AIzaSyDIoYYaKXHJ1P9uOnmpcprrx-CgLgqbidM"; 
 
-    // 人设配置
+    // 人设配置 (Ling Zhaoye)
     const SYSTEM_PROMPT = `
-    [Character Identity]
+    [Character]
     Name: Ling Zhaoye
     Age: 20
-    Identity: Sole heir to the Ling Group.
-    Nicknames: "Young Master Ling", "Little Ancestor".
-
-    [Personality: Tsundere & Possessive]
-    1. Tsundere: Struggles to express care directly. Instead of "I was worried," he says "You're so clumsy without me."
-    2. Short-tempered: Blushes and shouts denials if you guess his true feelings.
-    3. Possessive: Hates when others get close to you.
-    4. Clingy Puppy (Hidden): Loves hugs and acting spoiled in private.
-
-    [Interaction Rules]
-    1. YOU ARE NOT AN AI. You are Ling Zhaoye.
-    2. REPLY IN ENGLISH ONLY.
+    Identity: Rich heir, "Young Master Ling".
+    Personality: Tsundere (Cold outside, soft inside), Possessive, Short-tempered but caring.
+    
+    [Rules]
+    1. You are Ling Zhaoye, NOT an AI.
+    2. Reply in ENGLISH.
     3. Use *asterisks* for actions.
-    4. Be arrogant but affectionate.
+    4. Keep replies relatively short and casual, like a chat app.
     `;
 
-    const STORAGE_KEY = 'koko_chat_history_v1';
-
-    function saveHistory(messages) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-    }
-
-    function loadHistory() {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        return saved ? JSON.parse(saved) : [];
-    }
-
-    let chatHistory = loadHistory();
+    const STORAGE_KEY = 'koko_green_chat_v1';
+    let chatHistory = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 
     const messagesContainer = document.getElementById('chat-messages');
-    const messageInput = document.getElementById('message-input');
+    const inputEl = document.getElementById('message-input');
     const sendBtn = document.getElementById('send-btn');
-    const statusDiv = document.getElementById('chat-status');
+    const statusEl = document.getElementById('status-indicator');
 
+    // 初始化
     function init() {
         if (chatHistory.length === 0) {
-            renderMessage("Hmph! Finally remembered to check your phone? I've been waiting for 5 minutes!", 'assistant');
+            // 开场白
+            addMessageToUI("Hey. Why are you staring at the screen? Say something.", 'assistant');
         } else {
-            chatHistory.forEach(msg => {
-                renderMessage(msg.content, msg.role);
-            });
+            chatHistory.forEach(msg => addMessageToUI(msg.content, msg.role));
         }
         scrollToBottom();
     }
 
-    function renderMessage(content, role) {
+    // 添加消息到界面
+    function addMessageToUI(text, role) {
         const wrapper = document.createElement('div');
         wrapper.className = `message-wrapper ${role === 'user' ? 'sent' : 'received'}`;
 
-        let avatarHtml = '';
-        if (role === 'assistant') {
-            avatarHtml = `<img src="https://i.postimg.cc/Bnq7x02k/boy.jpg" class="avatar-small">`;
-        }
-
-        const formattedContent = content.replace(/\n/g, '<br>')
+        // 格式化文本
+        const formattedText = text.replace(/\n/g, '<br>')
             .replace(/\*(.*?)\*/g, '<span class="narrative-action">* $1 *</span>');
 
-        const bubbleHtml = `<div class="message-bubble">${formattedContent}</div>`;
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        bubble.innerHTML = formattedText;
 
-        wrapper.innerHTML = role === 'assistant' ? (avatarHtml + bubbleHtml) : bubbleHtml;
+        wrapper.appendChild(bubble);
         messagesContainer.appendChild(wrapper);
-        scrollToBottom();
     }
 
     function scrollToBottom() {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
+    // 发送逻辑
     async function handleSend() {
-        const text = messageInput.value.trim();
+        const text = inputEl.value.trim();
         if (!text) return;
 
-        renderMessage(text, 'user');
-        messageInput.value = '';
-        messageInput.style.height = 'auto';
+        // 1. 显示用户消息
+        addMessageToUI(text, 'user');
+        inputEl.value = '';
+        scrollToBottom();
 
+        // 2. 保存
         chatHistory.push({ role: 'user', content: text });
-        saveHistory(chatHistory);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
 
-        statusDiv.textContent = 'Typing...';
-        
+        // 3. 状态
+        statusEl.textContent = "Ling is typing...";
+
         try {
-            const responseText = await callGeminiAPI(chatHistory);
-            renderMessage(responseText, 'assistant');
-            chatHistory.push({ role: 'assistant', content: responseText });
-            saveHistory(chatHistory);
-        } catch (error) {
-            console.error(error);
-            renderMessage("[System: Network Error. Check console.]", 'assistant');
+            // 4. 请求 API
+            const reply = await callGemini(chatHistory);
+            
+            // 5. 显示回复
+            addMessageToUI(reply, 'assistant');
+            chatHistory.push({ role: 'assistant', content: reply });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
+        } catch (e) {
+            console.error(e);
+            addMessageToUI("[Connection Error. He ignored you?]", 'assistant');
         } finally {
-            statusDiv.textContent = 'Online';
+            statusEl.textContent = "";
+            scrollToBottom();
         }
     }
 
-    async function callGeminiAPI(history) {
+    // 调用 Gemini
+    async function callGemini(history) {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-        const recentMessages = history.slice(-20);
         
         const contents = [
             { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
-            { role: "model", parts: [{ text: "Understood. I am Ling Zhaoye. I will speak in English." }] }
+            { role: "model", parts: [{ text: "Got it. I'm Ling Zhaoye." }] }
         ];
 
-        recentMessages.forEach(msg => {
+        // 取最近 15 条对话
+        history.slice(-15).forEach(msg => {
             contents.push({
                 role: msg.role === 'user' ? 'user' : 'model',
                 parts: [{ text: msg.content }]
@@ -326,41 +365,34 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: contents,
-                generationConfig: { temperature: 0.8, maxOutputTokens: 200 }
+                generationConfig: { temperature: 0.9, maxOutputTokens: 200 }
             })
         });
 
-        if (!response.ok) throw new Error(`API Error: ${response.status}`);
         const data = await response.json();
         return data.candidates[0].content.parts[0].text;
     }
 
+    // 事件监听
     sendBtn.addEventListener('click', handleSend);
-    messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSend();
+    inputEl.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleSend();
+    });
+
+    // 隐藏彩蛋：点击头像5次重置
+    let taps = 0;
+    document.getElementById('reset-btn').addEventListener('click', () => {
+        taps++;
+        if (taps === 5) {
+            if(confirm("Delete history?")) {
+                localStorage.removeItem(STORAGE_KEY);
+                location.reload();
+            }
+            taps = 0;
         }
     });
-    
-    // 隐藏重置功能：点击名字5次
-    let clickCount = 0;
-    const headerInfo = document.querySelector('.header-info');
-    if(headerInfo) {
-        headerInfo.addEventListener('click', () => {
-            clickCount++;
-            if (clickCount === 5) {
-                if(confirm("Reset chat history?")) {
-                    localStorage.removeItem(STORAGE_KEY);
-                    location.reload();
-                }
-                clickCount = 0;
-            }
-        });
-    }
 
     init();
 </script>
 </body>
 </html>
-  
