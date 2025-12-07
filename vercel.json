@@ -1,25 +1,11 @@
 {
   "version": 2,
   "framework": null,
-  "builds": [
-    {
-      "src": "index.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
+  "buildCommand": "",
+  "outputDirectory": "",
+  "rewrites": [
+    { "source": "/api/chat/get", "destination": "/api/chat/get" },
+    { "source": "/api/chat/save", "destination": "/api/chat/save" }
   ],
   "env": {
     "MONGODB_URI": "mongodb+srv://jessicacym94_db_user:k79WEWGnMey4RtN5@cluster0.4q0ji8h.mongodb.net/?appName=Cluster0",
